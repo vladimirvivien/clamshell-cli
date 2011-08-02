@@ -1,4 +1,4 @@
-package org.clamshell.cli.launcher;
+package cli;
 
 /**
  * Hello world!
