@@ -12,4 +12,6 @@ public interface Context {
     public void putValue(String key, Object val);
     public Object getValue(String key);
     public void removeValue(String key);
+    
+    public Configurator getConfigurator();
 }
