@@ -1,4 +1,13 @@
-trunk/clamshell-api/target/*
-trunk/clamshell-impl/target/*
-trunk/clamshell-commons/target/*
-trunk/clamshell-launcher/target/*
+trunk/clamshell-cli-project/clamshell-api/target/*
+trunk/clamshell-cli-project/clamshell-impl/target/*
+trunk/clamshell-cli-project/clamshell-impl-shell/*
+trunk/clamshell-cli-project/clamshell-impl-console/*
+trunk/clamshell-cli-project/clamshell-commons/target/*
+trunk/clamshell-cli-project/clamshell-launcher/target/*
+trunk/test-components/NonClamshellPlugin/build/*
+trunk/test-components/NonClamshellPlugin/dist/*
+trunk/test-components/SimplePlugin/build/*
+trunk/test-components/SimplePlugin/dist/*
+trunk/test-components/SimpleShell/build/*
+trunk/test-components/SimpleShell/dist/*
+ 
