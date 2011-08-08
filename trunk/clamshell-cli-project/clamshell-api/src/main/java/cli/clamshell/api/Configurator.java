@@ -1,9 +1,9 @@
 package cli.clamshell.api;
 
 /**
- * This interface encapsulates the configuration of the entire system.
- * Use this to discover how the system is configured (not to set it).
- * @author vvivien
+ * This interface encapsulates the configuration of Clamshell-Cli.
+ * Implement the getProperty() method to expose system-wide property values.
+ * @author vladimir.vivien
  */
 public interface Configurator {
     public static String VALUE_DIR_ROOT = ".";    
@@ -30,8 +30,8 @@ public interface Configurator {
 
     /**
      * Reads a property from the loaded cli.properties file.
-     * @param key
-     * @return 
+     * @param key the name of the property
+     * @return an object representing property value
      */
     public Object getProperty(String key);
 }

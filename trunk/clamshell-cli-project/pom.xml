@@ -20,6 +20,8 @@
         <module>clamshell-commons</module>
         <module>clamshell-impl-shell</module>
         <module>clamshell-impl-console</module>
+        <module>clamshell-impl-echocontroller</module>
+        <module>clamshell-impl-cmdcontroller</module>
         <module>clamshell-launcher</module>
     </modules>
 </project>

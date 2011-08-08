@@ -31,9 +31,11 @@ public class Run {
             System.exit(1);
         }
         
-        // load context
+        // create/confiugre the context
         Context context = ShellContext.createInstance();
         // only continue if plugins are found
+        context.putValue(Context.KEY_INPUT_STREAM, System.in);
+        context.putValue(Context.KEY_OUTPUT_STREAM, System.out);
         if(context.getPlugins().size() > 0){
             System.out.printf("Found %d plugins in location [%s].%n", context.getPlugins().size(), Configurator.VALUE_DIR_PLUGINS);
             Shell shell = context.getShell();
