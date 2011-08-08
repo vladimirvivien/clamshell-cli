@@ -1,5 +1,6 @@
-package cli.clamshell.commons;
+package cli.clamshell.commons.test;
 
+import cli.clamshell.commons.ShellConfigurator;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -16,7 +17,7 @@ import org.junit.Test;
  */
 public class ShellConfiguratorTest {
     static {
-        System.setProperty(ShellConfigurator.KEY_PROP_FILE, "conf/cli.properties");
+        System.setProperty(ShellConfigurator.KEY_PROP_FILE, "../mock-env/conf/cli.properties");
     }
     ShellConfigurator config;
     

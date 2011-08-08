@@ -1,5 +1,7 @@
 package cli.clamshell.commons;
 
+import cli.clamshell.api.IOConsole;
+import cli.clamshell.api.Prompt;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,6 +25,8 @@ public class ShellContext implements Context{
     private List<Plugin> plugins;
     private ClassLoader classLoader;
     private Shell shell;
+    private IOConsole console;
+    private Prompt prompt;
 
     /**
      * Creates an instance of ShellContext.
@@ -165,10 +169,28 @@ public class ShellContext implements Context{
         return shell;
     }
     
+
     @Override
-    public Context clone(){
-        Context cloneCtx = ShellContext.createInstance();
-        cloneCtx.putValues(values);
-       return cloneCtx;
+    public IOConsole getIoConsole() {
+        if(console != null) return console;
+        List<IOConsole> consoles = getPluginsByType(IOConsole.class);
+        console = (consoles.size() > 0) ? consoles.get(0) : null;
+        return console;
+    }
+
+    @Override
+    public Prompt getPrompt() {
+        if(prompt != null) return prompt;
+        List<Prompt> prompts = getPluginsByType(Prompt.class);
+        prompt = (prompts.size() > 0) ? prompts.get(0) : new DefaultPrompt();
+        return prompt;
+    }
+    
+    private class DefaultPrompt implements Prompt{
+        private final String value = System.getProperty("user.name") + "> ";
+        public String getValue(Context ctx) {
+            return value;
+        }
+        public void plug(Context plug) {}
     }
 }

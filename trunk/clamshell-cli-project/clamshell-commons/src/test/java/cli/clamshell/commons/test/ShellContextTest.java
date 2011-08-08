@@ -1,10 +1,12 @@
-package cli.clamshell.commons;
+package cli.clamshell.commons.test;
 
+import cli.clamshell.api.Configurator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import cli.clamshell.api.Plugin;
 import cli.clamshell.api.Shell;
+import cli.clamshell.commons.ShellContext;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -17,7 +19,10 @@ import org.junit.Test;
  */
 public class ShellContextTest {
     static {
-        System.setProperty(ShellConfigurator.KEY_PROP_FILE, "./conf/cli.properties");
+        System.setProperty(Configurator.KEY_PROP_FILE, "../mock-env/conf/cli.properties");
+        System.setProperty(Configurator.KEY_DIR_CONF, "../mock-env/conf");
+        System.setProperty(Configurator.KEY_DIR_PLUGINS, "../mock-env/plugins");
+
     }
     private ShellContext context;
     

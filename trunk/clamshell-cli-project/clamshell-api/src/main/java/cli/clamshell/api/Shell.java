@@ -8,9 +8,10 @@ package cli.clamshell.api;
 public interface Shell extends Plugin{
     /**
      * Called when shell is running is pass-through mode.
-     * In pass-through, the shell will not start a console.
-     * Rather will attempt to interpret to command-line using its
-     * internal Interpreter object.
+     * In pass-through, the launcher will call this method only and not start
+     * interactive mode through the normal startup sequence.
+     * The command-line values will be passed in the context via key
+     * Context.KEY_COMMAND_LINE_INPUT
      * @param ctx 
      */
     public void exec(Context ctx);

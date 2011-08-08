@@ -1,3 +1,4 @@
+trunk/clamshell-cli-project/dist/*
 trunk/clamshell-cli-project/clamshell-api/target/*
 trunk/clamshell-cli-project/clamshell-impl/target/*
 trunk/clamshell-cli-project/clamshell-impl-shell/*

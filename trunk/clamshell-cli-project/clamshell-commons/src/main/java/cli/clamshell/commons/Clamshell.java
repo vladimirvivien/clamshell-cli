@@ -23,7 +23,7 @@ public final class Clamshell {
     /**
      * Clamshell Runtime utility methods.
      */
-    protected static class Runtime{
+    public static class Runtime{
         
         /**
          * Creates a collection of all classes that implements Plugin using the 
@@ -51,12 +51,20 @@ public final class Clamshell {
             File[] filePaths = correctPaths(paths);
             List<URL> classpath = new ArrayList<URL>();
             for(int i = 0; i < filePaths.length; i++){
-                if (!filePaths[i].isDirectory()) {
-                    log.log(Level.WARNING,"Path {0} is not a valid directory."
-                            + "  It will not be added to classpath", filePaths[i]);
+                File filePath = filePaths[i].getCanonicalFile();
+                if (!filePath.exists()) {
+                    log.log(Level.WARNING,"Path [{0}] does not exist."
+                            + "  It will not be added to classpath", filePath.getCanonicalPath());
+                    continue;
                 }
+                if (filePath.exists() && !filePath.isDirectory()) {
+                    log.log(Level.WARNING,"Path [{0}] is not a directory."
+                            + "  It will not be added to classpath", filePath.getCanonicalPath());
+                    continue;
+                }                
+                
                 // retrieve jar files from direction i
-                File[] files = filePaths[i].listFiles(new FileFilter() {
+                File[] files = filePath.listFiles(new FileFilter() {
                     public boolean accept(File file) {
                         return file.getName().endsWith(".jar");
                     }
@@ -79,12 +87,13 @@ public final class Clamshell {
          * @param paths
          * @return 
          */
-        private static File[] correctPaths(File[] paths){
+        private static File[] correctPaths(File[] paths) throws Exception{
             File[] correctedPaths = new File[paths.length];
             for(int i = 0; i < paths.length; i++){
                 String pathName = paths[i].getName();
                 if(!pathName.endsWith(System.getProperty("file.separator"))){
-                    correctedPaths[i] = new File(paths[i].getName().trim() + System.getProperty("file.separator"));
+                    String fullPath = paths[i].getCanonicalPath();
+                    correctedPaths[i] = new File(fullPath + System.getProperty("file.separator"));
                 }else{
                     correctedPaths[i] = paths[i];
                 }
