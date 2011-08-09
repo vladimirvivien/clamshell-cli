@@ -11,10 +11,8 @@ import cli.clamshell.api.Context;
  */
 public class ExitCmd implements Command {
     private static final String ACTION_NAME = "exit";
-    public String getAction() {
-        return ACTION_NAME;
-    }
 
+    @Override
     public Object execute(Context ctx) {
         ctx.getIoConsole().writeOutput("Bye" + Configurator.VALUE_LINE_SEP);
         System.out.flush();
@@ -22,8 +20,27 @@ public class ExitCmd implements Command {
         return null;
     }
 
+    @Override
     public void plug(Context plug) {
         // nothing to setup
+    }
+    
+    @Override
+    public Command.Descriptor getDescriptor(){
+        return new Command.Descriptor() {
+
+            public String getName() {
+                return ACTION_NAME;
+            }
+
+            public String getDescription() {
+               return "Exits Clamshell completely.";
+            }
+
+            public String getUsage() {
+                return "Type 'exit' to quit the system.";
+            }
+        };
     }
     
 }

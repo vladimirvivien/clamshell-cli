@@ -44,6 +44,7 @@ public class CmdController implements Controller{
                     if(tokens.length > 1){
                         String[] args = Arrays.copyOfRange(tokens, 1, tokens.length-1);
                         ctx.putValue(Context.KEY_COMMAND_PARAMS, args);
+                        System.out.println ("*** Args are: " + Arrays.toString(args));
                     }
                     cmd.execute(ctx);
                 }else{
@@ -65,7 +66,15 @@ public class CmdController implements Controller{
             commands = new HashMap<String, Command>(loadedCmds.size());
             for(Command cmd : loadedCmds){
                 cmd.plug(plug);
-                commands.put(cmd.getAction(), cmd);
+                Command.Descriptor desc = cmd.getDescriptor();
+                if(desc != null){
+                    commands.put(desc.getName(), cmd);
+                }else{
+                    plug.getIoConsole().writeOutput(
+                        String.format("Command [%] does not have a Command.Descriptor"
+                            + "Command will not be mapped.", cmd.getClass().getCanonicalName())
+                    );
+                }
             }
         }else{
             plug.getIoConsole().writeOutput("CmdController found no Command components loaded.");
