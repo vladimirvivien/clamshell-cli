@@ -23,5 +23,6 @@
         <module>clamshell-impl-echocontroller</module>
         <module>clamshell-impl-cmdcontroller</module>
         <module>clamshell-launcher</module>
+        <module>clamshell-impl-defaultcmds</module>
     </modules>
 </project>

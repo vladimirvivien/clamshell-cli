@@ -7,6 +7,7 @@ trunk/clamshell-cli-project/clamshell-commons/target/*
 trunk/clamshell-cli-project/clamshell-launcher/target/*
 trunk/clamshell-cli-project/clamshell-impl-echocontroller/target/*
 trunk/clamshell-cli-project/clamshell-impl-cmdcontroller/target/*
+trunk/clamshell-cli-project/clamshell-impl-defaultcmds/target/*
 trunk/test-components/NonClamshellPlugin/build/*
 trunk/test-components/NonClamshellPlugin/dist/*
 trunk/test-components/SimplePlugin/build/*

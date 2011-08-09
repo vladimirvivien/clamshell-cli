@@ -3,7 +3,8 @@ package cli.clamshell.impl;
 import cli.clamshell.api.Command;
 import cli.clamshell.api.Context;
 import cli.clamshell.api.Controller;
-import java.lang.String;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,7 @@ import java.util.Map;
  * @author vladimir.vivien
  */
 public class CmdController implements Controller{
-    private Map<String,Command> commands;
+    private Map<String,Command> commands = Collections.emptyMap();
     
     /**
      * Handles incoming command-line input.  CmdController first splits the
@@ -35,26 +36,39 @@ public class CmdController implements Controller{
      */
     public void handle(Context ctx) {
         String cmdLine = (String)ctx.getValue(Context.KEY_COMMAND_LINE_INPUT);
-        if(!cmdLine.isEmpty()){
+        if(!cmdLine.trim().isEmpty()){
             String[] tokens = cmdLine.split("\\s+");
-            ctx.getIoConsole().writeOutput("Command.action = " + tokens[0]);
-            System.out.println ("**** " + commands);
-            Command cmd = commands.get(tokens[0]);
-            if(cmd != null){
-                //cmd.execute(ctx);
+            if(!commands.isEmpty()){
+                Command cmd = commands.get(tokens[0]);
+                if(cmd != null){
+                    if(tokens.length > 1){
+                        String[] args = Arrays.copyOfRange(tokens, 1, tokens.length-1);
+                        ctx.putValue(Context.KEY_COMMAND_PARAMS, args);
+                    }
+                    cmd.execute(ctx);
+                }else{
+                    ctx.getIoConsole().writeOutput(String.format("Command [%s] is unknown. "
+                            + "Type help for a list of installed commands.%n", tokens[0]));
+                }
             }
         }
     }
 
     /**
-     * Entry point for the plugin.
+     * Entry point for the plugin.  This method loads the Command plugins found
+     * on the classpath and maps them to their action name.
      * @param plug 
      */
     public void plug(Context plug) {
         List<Command> loadedCmds = plug.getPluginsByType(Command.class);
-        commands = new HashMap<String, Command>(loadedCmds.size());
-        for(Command cmd : loadedCmds){
-            commands.put(cmd.getAction(), cmd);
+        if(loadedCmds.size() > 0){
+            commands = new HashMap<String, Command>(loadedCmds.size());
+            for(Command cmd : loadedCmds){
+                cmd.plug(plug);
+                commands.put(cmd.getAction(), cmd);
+            }
+        }else{
+            plug.getIoConsole().writeOutput("CmdController found no Command components loaded.");
         }
     }
     

@@ -13,6 +13,8 @@ public interface Context{
      */
     public static final String KEY_COMMAND_LINE_INPUT = "key.commandlineInput";
     
+    public static final String KEY_COMMAND_PARAMS = "key.commandParams";
+    
     /**
      * Key to retrieve prompt value from the context store.
      */

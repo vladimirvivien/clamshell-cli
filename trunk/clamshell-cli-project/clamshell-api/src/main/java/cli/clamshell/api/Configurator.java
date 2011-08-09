@@ -26,7 +26,10 @@ public interface Configurator {
         System.getProperty(KEY_DIR_LIB) != null ? System.getProperty(KEY_DIR_LIB)
         : VALUE_DIR_ROOT + "/lib"
     );
+    
     public static final String VALUE_PROP_FILE = "cli.properties";
+    
+    public static final String VALUE_LINE_SEP = System.getProperty("line.separator");
 
     /**
      * Reads a property from the loaded cli.properties file.

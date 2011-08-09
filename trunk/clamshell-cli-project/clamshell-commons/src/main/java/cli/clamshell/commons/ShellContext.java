@@ -136,8 +136,10 @@ public class ShellContext implements Context{
      */
     @Override
     public List<Plugin> getPlugins(){
+        if(plugins != null) return plugins;
         ClassLoader cl = getClassLoader();
-        return (plugins != null) ? plugins : Clamshell.Runtime.loadPlugins(cl);
+        plugins = Clamshell.Runtime.loadPlugins(cl);
+        return plugins;
     }
     
     /**
@@ -187,7 +189,7 @@ public class ShellContext implements Context{
     }
     
     private class DefaultPrompt implements Prompt{
-        private final String value = System.getProperty("user.name") + "> ";
+        private final String value = System.getProperty("user.name") + " > ";
         public String getValue(Context ctx) {
             return value;
         }
