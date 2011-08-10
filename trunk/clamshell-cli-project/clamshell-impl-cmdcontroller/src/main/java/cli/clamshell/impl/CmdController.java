@@ -27,7 +27,6 @@ import java.util.Map;
  * @author vladimir.vivien
  */
 public class CmdController implements Controller{
-    private Map<String,Command> commands = Collections.emptyMap();
     
     /**
      * Handles incoming command-line input.  CmdController first splits the
@@ -36,20 +35,21 @@ public class CmdController implements Controller{
      */
     public void handle(Context ctx) {
         String cmdLine = (String)ctx.getValue(Context.KEY_COMMAND_LINE_INPUT);
+        
         if(!cmdLine.trim().isEmpty()){
             String[] tokens = cmdLine.split("\\s+");
+            Map<String,Command> commands = (Map<String,Command>) ctx.getValue(Context.KEY_COMMAND_MAP);
             if(!commands.isEmpty()){
                 Command cmd = commands.get(tokens[0]);
                 if(cmd != null){
                     if(tokens.length > 1){
-                        String[] args = Arrays.copyOfRange(tokens, 1, tokens.length-1);
-                        ctx.putValue(Context.KEY_COMMAND_PARAMS, args);
-                        System.out.println ("*** Args are: " + Arrays.toString(args));
+                        String[] args = Arrays.copyOfRange(tokens, 1, tokens.length);
+                        ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, args);
                     }
                     cmd.execute(ctx);
                 }else{
-                    ctx.getIoConsole().writeOutput(String.format("Command [%s] is unknown. "
-                            + "Type help for a list of installed commands.%n", tokens[0]));
+                    ctx.getIoConsole().writeOutput(String.format("%nCommand [%s] is unknown. "
+                            + "Type help for a list of installed commands.%n%n", tokens[0]));
                 }
             }
         }
@@ -61,9 +61,9 @@ public class CmdController implements Controller{
      * @param plug 
      */
     public void plug(Context plug) {
-        List<Command> loadedCmds = plug.getPluginsByType(Command.class);
+        List<Command> loadedCmds = plug.getCommands();
         if(loadedCmds.size() > 0){
-            commands = new HashMap<String, Command>(loadedCmds.size());
+            Map<String,Command> commands = new HashMap<String, Command>(loadedCmds.size());
             for(Command cmd : loadedCmds){
                 cmd.plug(plug);
                 Command.Descriptor desc = cmd.getDescriptor();
@@ -71,11 +71,13 @@ public class CmdController implements Controller{
                     commands.put(desc.getName(), cmd);
                 }else{
                     plug.getIoConsole().writeOutput(
-                        String.format("Command [%] does not have a Command.Descriptor"
-                            + "Command will not be mapped.", cmd.getClass().getCanonicalName())
+                        String.format("%nCommand [%] does not have a Command.Descriptor"
+                            + "Command will not be mapped.%nn", cmd.getClass().getCanonicalName())
                     );
                 }
             }
+            // save command map in Context;
+            plug.putValue(Context.KEY_COMMAND_MAP, commands);
         }else{
             plug.getIoConsole().writeOutput("CmdController found no Command components loaded.");
         }

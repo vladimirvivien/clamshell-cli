@@ -1,5 +1,6 @@
 package cli.clamshell.commons;
 
+import cli.clamshell.api.Command;
 import cli.clamshell.api.IOConsole;
 import cli.clamshell.api.Prompt;
 import java.io.File;
@@ -27,6 +28,7 @@ public class ShellContext implements Context{
     private Shell shell;
     private IOConsole console;
     private Prompt prompt;
+    private List<Command> commands;
 
     /**
      * Creates an instance of ShellContext.
@@ -186,6 +188,13 @@ public class ShellContext implements Context{
         List<Prompt> prompts = getPluginsByType(Prompt.class);
         prompt = (prompts.size() > 0) ? prompts.get(0) : new DefaultPrompt();
         return prompt;
+    }
+
+    @Override
+    public List<Command> getCommands() {
+        if(commands != null) return commands;
+        commands = getPluginsByType(Command.class);
+        return commands;
     }
     
     private class DefaultPrompt implements Prompt{

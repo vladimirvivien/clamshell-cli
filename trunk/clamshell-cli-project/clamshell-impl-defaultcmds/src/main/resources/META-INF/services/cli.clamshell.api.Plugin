@@ -1,1 +1,2 @@
 cli.clamshell.impl.ExitCmd
+cli.clamshell.impl.HelpCmd

@@ -67,5 +67,10 @@
             <version>0.9.9</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+          <groupId>com.beust</groupId>
+          <artifactId>jcommander</artifactId>
+          <version>1.17</version>
+        </dependency>
     </dependencies>
 </project>

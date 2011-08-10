@@ -13,7 +13,15 @@ public interface Context{
      */
     public static final String KEY_COMMAND_LINE_INPUT = "key.commandlineInput";
     
-    public static final String KEY_COMMAND_PARAMS = "key.commandParams";
+    /**
+     * Key for command-line command arguments
+     */
+    public static final String KEY_COMMAND_LINE_ARGS = "key.commandParams";
+    
+    /**
+     * Key for saving/retrieving the command map in the context.
+     */
+    public static final String KEY_COMMAND_MAP = "key.commandMap";
     
     /**
      * Key to retrieve prompt value from the context store.
@@ -102,4 +110,12 @@ public interface Context{
      * @return list of objects that implements the filter type.
      */
     public <T> List<T> getPluginsByType(Class<T> type);
+    
+    
+    /**
+     * A convenience method that retrieves a list of Command plugins.
+     * 
+     * @return list of Command instances.
+     */
+    public List<Command> getCommands();
 }

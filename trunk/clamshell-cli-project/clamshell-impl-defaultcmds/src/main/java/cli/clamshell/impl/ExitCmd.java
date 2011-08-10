@@ -14,8 +14,6 @@ public class ExitCmd implements Command {
 
     @Override
     public Object execute(Context ctx) {
-        ctx.getIoConsole().writeOutput("Bye" + Configurator.VALUE_LINE_SEP);
-        System.out.flush();
         System.exit(0);
         return null;
     }
@@ -38,7 +36,7 @@ public class ExitCmd implements Command {
             }
 
             public String getUsage() {
-                return "Type 'exit' to quit the system.";
+                return "Type 'exit'";
             }
         };
     }
