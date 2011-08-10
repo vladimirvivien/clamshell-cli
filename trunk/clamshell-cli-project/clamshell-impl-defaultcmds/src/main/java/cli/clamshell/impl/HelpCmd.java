@@ -1,7 +1,10 @@
 package cli.clamshell.impl;
 
 import cli.clamshell.api.Command;
+import cli.clamshell.api.Configurator;
 import cli.clamshell.api.Context;
+import cli.clamshell.api.IOConsole;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -52,7 +55,7 @@ public class HelpCmd implements Command{
         if(args != null && args.length > 0){
             printCommandHelp(ctx, args[0].trim());
         }else{
-            printCommandHelp(ctx, this);
+            printAllHelp(ctx);
         }
         return null;
     }
@@ -75,10 +78,28 @@ public class HelpCmd implements Command{
     }
     
     private void printCommandHelp(Context ctx, Command cmd){
-        if(cmd != null){
-            ctx.getIoConsole().writeOutput(String.format("%nCommand: %s - %s%n", descriptor.getName(), descriptor.getDescription()));
-            ctx.getIoConsole().writeOutput(String.format("Usage: %s%n%n", descriptor.getUsage()));            
+        if(cmd != null && cmd.getDescriptor() != null){
+            ctx.getIoConsole().writeOutput(String.format("%nCommand: %s - %s%n", cmd.getDescriptor().getName(), cmd.getDescriptor().getDescription()));
+            ctx.getIoConsole().writeOutput(String.format("Usage: %s%n%n", cmd.getDescriptor().getUsage()));            
+        }else{
+            ctx.getIoConsole().writeOutput(String.format("%nUnable to display help for command.%n%n"));
         }
+    }
+    
+    private void printAllHelp(Context ctx){
+        IOConsole c = ctx.getIoConsole();
+        c.writeOutput(String.format("%nAvailable Commands"));
+        c.writeOutput(String.format("%n------------------"));
+        List<Command> commands = ctx.getCommands();
+        for(Command cmd : commands){
+            c.writeOutput(String.format(
+                "%n%1$10s %2$5s %3$s", 
+                cmd.getDescriptor().getName(), 
+                " ", 
+                cmd.getDescriptor().getDescription()
+            ));
+        }
+        c.writeOutput(String.format("%n%n"));
     }
     
 }

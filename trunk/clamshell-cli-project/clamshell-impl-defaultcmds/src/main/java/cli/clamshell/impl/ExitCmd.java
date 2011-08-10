@@ -32,7 +32,7 @@ public class ExitCmd implements Command {
             }
 
             public String getDescription() {
-               return "Exits Clamshell completely.";
+               return "Exits ClamShell.";
             }
 
             public String getUsage() {

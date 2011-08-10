@@ -22,12 +22,10 @@ import java.io.File;
  * @author vladimir.vivien
  */
 public class Run {
-    public static void main(String[] args) throws Exception{
-        System.out.println ("Starting Clamshell-Cli.");
-        
+    public static void main(String[] args) throws Exception{        
         File pluginsDir = new File(Configurator.VALUE_DIR_PLUGINS);
         if(!pluginsDir.exists()){
-            System.out.printf("Pugins directory [%s] not found. Clamshell-Cli will stop.%n", pluginsDir.getCanonicalPath());
+            System.out.printf("%nPugins directory [%s] not found. ClamShell-Cli will exit.%n%n", pluginsDir.getCanonicalPath());
             System.exit(1);
         }
         
@@ -37,17 +35,16 @@ public class Run {
         context.putValue(Context.KEY_INPUT_STREAM, System.in);
         context.putValue(Context.KEY_OUTPUT_STREAM, System.out);
         if(context.getPlugins().size() > 0){
-            System.out.printf("Found %d plugins in location [%s].%n", context.getPlugins().size(), Configurator.VALUE_DIR_PLUGINS);
             Shell shell = context.getShell();
             if(context.getShell() != null){
                 shell.plug(context);
             }else{
-                System.out.printf ("No Shell component found in plugins directory [%s]."
-                        + " Clamshell-Cli will quit now.%n", Configurator.VALUE_DIR_PLUGINS);
+                System.out.printf ("%nNo Shell component found in plugins directory [%s]."
+                        + " ClamShell-Cli will exit now.%n", Configurator.VALUE_DIR_PLUGINS);
                 System.exit(1);
             }
         }else{
-            System.out.printf ("No plugins found in [%s]. Clamshell-Cli will quit now.%n", Configurator.VALUE_DIR_PLUGINS);
+            System.out.printf ("%nNo plugins found in [%s]. ClamShell-Cli will exit now.%n%n", Configurator.VALUE_DIR_PLUGINS);
             System.exit(1);
         }
     }

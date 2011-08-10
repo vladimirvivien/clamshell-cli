@@ -71,15 +71,15 @@ public class CmdController implements Controller{
                     commands.put(desc.getName(), cmd);
                 }else{
                     plug.getIoConsole().writeOutput(
-                        String.format("%nCommand [%] does not have a Command.Descriptor"
-                            + "Command will not be mapped.%nn", cmd.getClass().getCanonicalName())
+                        String.format("%nCommand [%] does not have a Command.Descriptor defined."
+                            + "It will not be mapped.%nn", cmd.getClass().getCanonicalName())
                     );
                 }
             }
             // save command map in Context;
             plug.putValue(Context.KEY_COMMAND_MAP, commands);
         }else{
-            plug.getIoConsole().writeOutput("CmdController found no Command components loaded.");
+            plug.getIoConsole().writeOutput(String.format("%nNo commands were mapped because none were found.%nn"));
         }
     }
     

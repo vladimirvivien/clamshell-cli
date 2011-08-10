@@ -1,2 +1,3 @@
 cli.clamshell.impl.ExitCmd
 cli.clamshell.impl.HelpCmd
+cli.clamshell.impl.SysInfoCmd
