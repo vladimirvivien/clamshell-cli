@@ -4,6 +4,7 @@ import cli.clamshell.api.Command;
 import cli.clamshell.api.Configurator;
 import cli.clamshell.api.Context;
 import cli.clamshell.api.IOConsole;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -20,16 +21,25 @@ public class HelpCmd implements Command{
     private HelpCmdDescriptor descriptor = new HelpCmdDescriptor();
     
     private class HelpCmdDescriptor implements Command.Descriptor {
+        @Override
         public String getName() {
             return CMD_NAME;
         }
 
+        @Override
         public String getDescription() {
             return "Displays help information for available commands.";
         }
 
+        @Override
         public String getUsage() {
             return "Type 'help' or 'help [command_name]' ";
+        }
+
+        @Override
+        public Map<String, String> getArgsDescription() {
+            return Collections.emptyMap();
+            
         }
     }
     
@@ -68,11 +78,11 @@ public class HelpCmd implements Command{
     private void printCommandHelp(Context ctx, String cmdName){
         Map<String, Command> commands = (Map<String,Command>) ctx.getValue(Context.KEY_COMMAND_MAP);
         if(commands != null){
-            Command cmd = commands.get(cmdName);
+            Command cmd = commands.get(cmdName.trim());
             if(cmd != null){
                 printCommandHelp(ctx, cmd);
             }else{
-                ctx.getIoConsole().writeOutput(String.format("%nCommand [%s] is not found.%n%n", cmdName));
+                ctx.getIoConsole().writeOutput(String.format("%nHelp for Command [%s] cannot not found.%n%n", cmdName));
             }
         }
     }

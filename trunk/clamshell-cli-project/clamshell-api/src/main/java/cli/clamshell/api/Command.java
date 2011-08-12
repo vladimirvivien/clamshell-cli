@@ -1,5 +1,7 @@
 package cli.clamshell.api;
 
+import java.util.Map;
+
 /**
  * The Command component is there to allow Controllers to delegate tasks.
  * Each command exposes a textual id.  This can be used to identify the action
@@ -54,6 +56,12 @@ public interface Command extends Plugin {
          * @return 
          */
         public String getUsage();
+        
+        /**
+         * Use this method to provide a map describing command arguments.
+         * @return Map<String,String>
+         */
+        public Map<String,String> getArgsDescription();
         
         
     }

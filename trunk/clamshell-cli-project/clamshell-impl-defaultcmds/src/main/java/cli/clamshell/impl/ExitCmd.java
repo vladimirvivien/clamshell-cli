@@ -3,6 +3,8 @@ package cli.clamshell.impl;
 import cli.clamshell.api.Command;
 import cli.clamshell.api.Configurator;
 import cli.clamshell.api.Context;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * This class implements the Command component.  It responds to the the "exit"
@@ -26,17 +28,24 @@ public class ExitCmd implements Command {
     @Override
     public Command.Descriptor getDescriptor(){
         return new Command.Descriptor() {
-
+            @Override
             public String getName() {
                 return ACTION_NAME;
             }
 
+            @Override
             public String getDescription() {
                return "Exits ClamShell.";
             }
 
+            @Override
             public String getUsage() {
                 return "Type 'exit'";
+            }
+
+            @Override
+            public Map<String, String> getArgsDescription() {
+                return Collections.emptyMap();
             }
         };
     }
