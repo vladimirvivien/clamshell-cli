@@ -13,11 +13,7 @@
     <packaging>jar</packaging>
 
     <name>clamshell-api</name>
-    <url>http://maven.apache.org</url>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+    <url>${cli.url}</url>
 
     <build>
         <plugins>
@@ -31,6 +27,9 @@
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                             <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                         </manifest>
+                        <manifestEntries>
+                            <Project-Url>${cli.url}</Project-Url>
+                        </manifestEntries>
                     </archive>
                     <outputDirectory>${project.parent.basedir}/dist/lib</outputDirectory>
                 </configuration>

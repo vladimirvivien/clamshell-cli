@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>clamshell</artifactId>
+        <groupId>cli.clamshell</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    
+    <artifactId>clamshell-commands</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <name>clamshell-commands</name>
+    <url>${cli.url}</url>
+
+    <build>
+        <finalName>cli-commands-${project.version}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.3.1</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                        <manifestEntries>
+                            <Project-Url>${cli.url}</Project-Url>
+                        </manifestEntries>                        
+                    </archive>
+                    <outputDirectory>${project.parent.basedir}/dist/plugins</outputDirectory>
+                </configuration>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>                                         
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.beust</groupId>
+                                    <artifactId>jcommander</artifactId>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.parent.basedir}/dist/lib</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>                
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>             
+            
+        </plugins>
+    </build>
+  
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.8.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>cli.clamshell</groupId>
+            <artifactId>clamshell-api</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+          <groupId>com.beust</groupId>
+          <artifactId>jcommander</artifactId>
+          <version>1.17</version>
+        </dependency>        
+    </dependencies>
+</project>

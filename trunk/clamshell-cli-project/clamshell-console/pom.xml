@@ -7,18 +7,22 @@
         <groupId>cli.clamshell</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <groupId>cli.clamshell</groupId>
-    <artifactId>clamshell-impl-defaultcmds</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <name>clamshell-impl-defaultcmds</name>
-    <url>http://maven.apache.org</url>
     
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-  
+    <artifactId>clamshell-console</artifactId>
+    <name>clamshell-console</name>
+    
+    <url>${cli.url}</url>
+    
+    <repositories>
+        <repository>
+            <id>jline</id>
+            <name>JLine Project Repository</name>
+            <url>http://jline.sourceforge.net/m2repo</url>
+        </repository>
+    </repositories>
+    
     <build>
-        <finalName>cli-default-cmds-${project.version}</finalName>
+        <finalName>cli-console-${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -30,7 +34,9 @@
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                             <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                         </manifest>
-                    </archive>
+                        <manifestEntries>
+                            <Project-Url>${cli.url}</Project-Url>
+                        </manifestEntries>                    </archive>
                     <outputDirectory>${project.parent.basedir}/dist/plugins</outputDirectory>
                 </configuration>
             </plugin>
@@ -48,8 +54,8 @@
                         <configuration>                                         
                             <artifactItems>
                                 <artifactItem>
-                                    <groupId>com.beust</groupId>
-                                    <artifactId>jcommander</artifactId>
+                                    <groupId>jline</groupId>
+                                    <artifactId>jline</artifactId>
                                     <type>jar</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.parent.basedir}/dist/lib</outputDirectory>
@@ -58,12 +64,24 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>             
-            
+            </plugin>   
+
         </plugins>
     </build>
-  
+    
     <dependencies>
+        <dependency>
+            <groupId>cli.clamshell</groupId>
+            <artifactId>clamshell-api</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>jline</groupId>
+            <artifactId>jline</artifactId>
+            <version>0.9.9</version>
+            <scope>compile</scope>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -72,13 +90,8 @@
         </dependency>
         <dependency>
             <groupId>cli.clamshell</groupId>
-            <artifactId>clamshell-api</artifactId>
+            <artifactId>clamshell-commons</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
-        <dependency>
-          <groupId>com.beust</groupId>
-          <artifactId>jcommander</artifactId>
-          <version>1.17</version>
-        </dependency>        
     </dependencies>
 </project>

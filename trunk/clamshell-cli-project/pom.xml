@@ -6,24 +6,58 @@
     <artifactId>clamshell</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-
-    <name>clamshell-parent</name>
-    <url>http://maven.apache.org</url>
+    <name>clamshell</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <cli.url>http://code.google.com/p/clamshell-cli/</cli.url>
     </properties>
     
+    <url>${cli.url}</url>
     
     <modules>
         <module>clamshell-api</module>
         <module>clamshell-commons</module>
-        <module>clamshell-impl-shell</module>
-        <module>clamshell-impl-console</module>
-        <module>clamshell-impl-echocontroller</module>
-        <module>clamshell-impl-cmdcontroller</module>
-        <module>clamshell-impl-defaultcmds</module>
-        <module>clamshell-impl-splashscreen</module>
+        <module>clamshell-shell</module>
+        <module>clamshell-console</module>
+        <module>clamshell-cmd-controller</module>
+        <module>clamshell-echo-controller</module>
+        <module>clamshell-commands</module>
         <module>clamshell-launcher</module>
-    </modules>
+        <module>clamshell-splashscreen</module>
+        <module>project-assembler</module>
+  </modules>
+    
+    <profiles>
+        <profile>
+            <id>dist</id>
+            <activation>
+                <property>
+                    <name>build.target</name>
+                    <value>dist</value>
+                </property>
+            </activation>
+            
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-clean-plugin</artifactId>
+                        <version>2.4.1</version>
+                        <configuration>
+                            <filesets>
+                                <fileset>
+                                    <directory>${project.basedir}/dist</directory>
+                                    <includes>
+                                        <include>**/*</include>
+                                    </includes>
+                                    <followSymlinks>false</followSymlinks>
+                                </fileset>
+                            </filesets>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>            
+            
+        </profile>
+    </profiles>
 </project>
