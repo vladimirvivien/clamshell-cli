@@ -5,11 +5,11 @@
     <parent>
         <artifactId>clamshell</artifactId>
         <groupId>cli.clamshell</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <version>0.1-SNAPSHOT</version>
     </parent>
     
     <artifactId>clamshell-echo-controller</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1-SNAPSHOT</version>
     
     <name>clamshell-echo-controller</name>
     
@@ -17,7 +17,7 @@
 
 
     <build>
-        <finalName>cli-controller-echo-${project.version}</finalName>
+        <finalName>cli-echo-controller-${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -49,7 +49,7 @@
         <dependency>
             <groupId>cli.clamshell</groupId>
             <artifactId>clamshell-api</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>

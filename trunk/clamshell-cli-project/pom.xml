@@ -1,10 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+   Copyright (C) 2011 the original author or authors.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+-->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>cli.clamshell</groupId>
     <artifactId>clamshell</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>clamshell</name>
 
@@ -14,6 +32,38 @@
     </properties>
     
     <url>${cli.url}</url>
+    <inceptionYear>2011</inceptionYear>
+    
+    <organization>
+        <name>ClamShell-Cli</name>
+        <url>${cli.url}</url>
+    </organization>
+  
+    <licenses>
+        <license>
+            <name>apache_v2</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <configuration>
+                            <tasks>
+                                <delete dir="${project.basedir}/dist" />
+                            </tasks>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>   
     
     <modules>
         <module>clamshell-api</module>
@@ -25,8 +75,7 @@
         <module>clamshell-commands</module>
         <module>clamshell-launcher</module>
         <module>clamshell-splashscreen</module>
-        <module>project-assembler</module>
-  </modules>
+    </modules>
     
     <profiles>
         <profile>
@@ -41,23 +90,63 @@
             <build>
                 <plugins>
                     <plugin>
-                        <artifactId>maven-clean-plugin</artifactId>
-                        <version>2.4.1</version>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.8</version>
+                        <executions>
+                            <execution>
+                                <id>aggregate</id>
+                                <phase>site</phase>
+                                <goals>
+                                    <goal>aggregate</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${project.basedir}/apidocs</outputDirectory>
+                                    <destDir>${project.basedir}/apidocs</destDir>
+                                    <finalName>${project.basedir}/apidocs</finalName>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+            
+            <modules>
+                <module>project-assembler</module>
+            </modules>
+            
+        </profile>
+        
+        <profile>
+            <id>license</id>
+            <activation>
+                <property>
+                    <name>build.target</name>
+                    <value>license</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>license-maven-plugin</artifactId>
+                        <version>1.0-beta-3</version>
                         <configuration>
-                            <filesets>
-                                <fileset>
-                                    <directory>${project.basedir}/dist</directory>
-                                    <includes>
-                                        <include>**/*</include>
-                                    </includes>
-                                    <followSymlinks>false</followSymlinks>
-                                </fileset>
-                            </filesets>
+                            <verbose>false</verbose>
+                            <header>src/main/license/license-header.txt</header>
+                            <licenseName>v3</licenseName>
+                            <header>src/licenses/apache_v2-header.txt</header>
+                            <roots>
+                                <root>src/main/java</root>
+                                <root>src/test</root>
+                            </roots>
+                            
+                            <includes>
+                                <include>**/*.java</include>
+                            </includes>                        
                         </configuration>
                     </plugin>
                 </plugins>
-            </build>            
-            
+            </build>
         </profile>
     </profiles>
 </project>

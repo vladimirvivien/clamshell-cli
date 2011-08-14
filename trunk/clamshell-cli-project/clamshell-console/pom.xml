@@ -5,7 +5,7 @@
     <parent>
         <artifactId>clamshell</artifactId>
         <groupId>cli.clamshell</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <version>0.1-SNAPSHOT</version>
     </parent>
     
     <artifactId>clamshell-console</artifactId>
@@ -73,7 +73,7 @@
         <dependency>
             <groupId>cli.clamshell</groupId>
             <artifactId>clamshell-api</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -91,7 +91,7 @@
         <dependency>
             <groupId>cli.clamshell</groupId>
             <artifactId>clamshell-commons</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>

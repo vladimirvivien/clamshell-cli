@@ -5,13 +5,27 @@
     <parent>
         <artifactId>clamshell</artifactId>
         <groupId>cli.clamshell</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <version>0.1-SNAPSHOT</version>
     </parent>
     
     <artifactId>clamshell-cmd-controller</artifactId>
     <name>clamshell-cmd-controller</name>
     
     <url>${cli.url}</url>
+
+    <organization>
+        <name>ClamShell-Cli</name>
+        <url>${cli.url}</url>
+    </organization>
+  
+    <licenses>
+        <license>
+            <name>apache_v2</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    
     
     <build>
         <finalName>cli-cmd-controller-${project.version}</finalName>
@@ -45,7 +59,7 @@
         <dependency>
             <groupId>cli.clamshell</groupId>
             <artifactId>clamshell-api</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>

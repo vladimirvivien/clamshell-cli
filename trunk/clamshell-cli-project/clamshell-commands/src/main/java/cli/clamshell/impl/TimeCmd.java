@@ -20,28 +20,29 @@
 package cli.clamshell.impl;
 
 import cli.clamshell.api.Command;
-import cli.clamshell.api.Configurator;
 import cli.clamshell.api.Context;
+import cli.clamshell.api.IOConsole;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Map;
 
 /**
- * This class implements the Command component.  It responds to the the "exit"
- * action
- * @author vvivien
+ * This class implements the Command interface to return the current time.
+ * @author vladimir.vivien
  */
-public class ExitCmd implements Command {
-    private static final String ACTION_NAME = "exit";
+public class TimeCmd implements Command {
+    private static final String ACTION_NAME = "time";
 
     @Override
     public Object execute(Context ctx) {
-        System.exit(0);
+        IOConsole console = ctx.getIoConsole();
+        console.writeOutput(String.format("%n%s%n%n",new Date().toString()));
         return null;
     }
 
     @Override
     public void plug(Context plug) {
-        // nothing to setup
+        // no load-time setup needed
     }
     
     @Override
@@ -54,12 +55,12 @@ public class ExitCmd implements Command {
 
             @Override
             public String getDescription() {
-               return "Exits ClamShell.";
+               return "Prints current date/time";
             }
 
             @Override
             public String getUsage() {
-                return "Type 'exit'";
+                return "Type 'time'";
             }
 
             @Override

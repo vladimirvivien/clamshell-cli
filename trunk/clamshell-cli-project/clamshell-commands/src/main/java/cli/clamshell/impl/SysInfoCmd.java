@@ -1,6 +1,26 @@
+/*
+ * #%L
+ * clamshell-commands
+ * %%
+ * Copyright (C) 2011 ClamShell-Cli
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
 package cli.clamshell.impl;
 
 import cli.clamshell.api.Command;
+import cli.clamshell.api.Configurator;
 import cli.clamshell.api.Context;
 import cli.clamshell.api.IOConsole;
 import com.beust.jcommander.JCommander;
@@ -65,7 +85,16 @@ public class SysInfoCmd implements Command{
         }
 
         public String getUsage() {
-            return "sysinfo [options]";
+            StringBuilder result = new StringBuilder();
+            result
+                .append(Configurator.VALUE_LINE_SEP)
+                .append("sysinfo [options]").append(Configurator.VALUE_LINE_SEP);
+            
+            for(Map.Entry<String,String> entry : getArgsDescription().entrySet()){
+                result.append(String.format("%n%1$15s %2$2s %3$s", entry.getKey(), " ", entry.getValue()));
+            }
+            
+            return result.toString();
         }
 
         public Map<String, String> getArgsDescription() {
