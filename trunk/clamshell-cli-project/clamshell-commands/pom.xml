@@ -5,11 +5,11 @@
     <parent>
         <artifactId>clamshell</artifactId>
         <groupId>cli.clamshell</groupId>
-        <version>0.1-SNAPSHOT</version>
+        <version>0.1</version>
     </parent>
     
     <artifactId>clamshell-commands</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1</version>
 
     <name>clamshell-commands</name>
     <url>${cli.url}</url>
@@ -86,7 +86,7 @@
         <dependency>
             <groupId>cli.clamshell</groupId>
             <artifactId>clamshell-api</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <version>0.1</version>
         </dependency>
         <dependency>
           <groupId>com.beust</groupId>

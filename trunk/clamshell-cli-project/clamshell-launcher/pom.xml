@@ -5,7 +5,7 @@
     <parent>
         <artifactId>clamshell</artifactId>
         <groupId>cli.clamshell</groupId>
-        <version>0.1-SNAPSHOT</version>
+        <version>0.1</version>
     </parent>
   
     <artifactId>clamshell-launcher</artifactId>

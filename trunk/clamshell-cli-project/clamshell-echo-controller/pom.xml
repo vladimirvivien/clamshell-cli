@@ -5,11 +5,11 @@
     <parent>
         <artifactId>clamshell</artifactId>
         <groupId>cli.clamshell</groupId>
-        <version>0.1-SNAPSHOT</version>
+        <version>0.1</version>
     </parent>
     
     <artifactId>clamshell-echo-controller</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1</version>
     
     <name>clamshell-echo-controller</name>
     
@@ -49,7 +49,7 @@
         <dependency>
             <groupId>cli.clamshell</groupId>
             <artifactId>clamshell-api</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <version>0.1</version>
         </dependency>
     </dependencies>
 </project>
