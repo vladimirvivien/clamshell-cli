@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * This implementation of the Controller component uses the Controller/Command
@@ -52,10 +53,12 @@ public class CmdController implements Controller{
      * input and uses token[0] as the action name mapped to the Command.
      * @param ctx the shell context.
      */
-    public void handle(Context ctx) {
+    public boolean handle(Context ctx) {
         String cmdLine = (String)ctx.getValue(Context.KEY_COMMAND_LINE_INPUT);
+        boolean handled = false;
         
-        if(!cmdLine.trim().isEmpty()){
+        // handle command line entry.  NOTE: value can be null
+        if(cmdLine != null && !cmdLine.trim().isEmpty()){
             String[] tokens = cmdLine.split("\\s+");
             Map<String,Command> commands = (Map<String,Command>) ctx.getValue(Context.KEY_COMMAND_MAP);
             if(!commands.isEmpty()){
@@ -66,12 +69,15 @@ public class CmdController implements Controller{
                         ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, args);
                     }
                     cmd.execute(ctx);
+                    handled = true;
                 }else{
                     ctx.getIoConsole().writeOutput(String.format("%nCommand [%s] is unknown. "
                             + "Type help for a list of installed commands.%n%n", tokens[0]));
                 }
             }
         }
+        
+        return handled;
     }
 
     /**
@@ -100,6 +106,10 @@ public class CmdController implements Controller{
         }else{
             plug.getIoConsole().writeOutput(String.format("%nNo commands were mapped because none were found.%nn"));
         }
+    }
+
+    public Pattern respondsTo() {
+        return null;
     }
     
 }

@@ -75,6 +75,7 @@
         <module>clamshell-commands</module>
         <module>clamshell-launcher</module>
         <module>clamshell-splashscreen</module>
+        <module>clamshell-jmx-controller</module>
     </modules>
     
     <profiles>

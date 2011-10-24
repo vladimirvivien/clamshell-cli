@@ -10,6 +10,8 @@ trunk/clamshell-cli-project/clamshell-commands/target/*
 trunk/clamshell-cli-project/clamshell-splashscreen/target/*
 trunk/clamshell-cli-project/project-assembler/target/*
 
+trunk/clamshell-cli-project/clamshell-jmx-controller/*
+
 trunk/test-components/NonClamshellPlugin/build/*
 trunk/test-components/NonClamshellPlugin/dist/*
 trunk/test-components/SimplePlugin/build/*

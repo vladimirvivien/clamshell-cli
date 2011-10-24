@@ -29,9 +29,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
+import jline.ArgumentCompletor;
+import jline.CandidateListCompletionHandler;
+import jline.CompletionHandler;
+import jline.Completor;
 import jline.ConsoleReader;
+import jline.NullCompletor;
+import jline.SimpleCompletor;
 
 /**
  * Default implementation of the IOConsole component.
@@ -44,7 +50,7 @@ public class CliConsole implements IOConsole{
     private Prompt prompt;
     private ConsoleReader console;
     private List<Controller> controllers;
-    private boolean interpretersAreValid;
+    private boolean controllersAreValid;
     private InputStream input;
     private OutputStream output;
     private Thread consoleThread;
@@ -62,7 +68,7 @@ public class CliConsole implements IOConsole{
         shell = plug.getShell();
         prompt = plug.getPrompt();
         controllers = plug.getPluginsByType(Controller.class);
-        interpretersAreValid = hasInterpreters(controllers);
+        controllersAreValid = haveControllers(controllers);
         input = (input = (InputStream)context.getValue(Context.KEY_INPUT_STREAM)) != null ? input : System.in;
         output = (output = (OutputStream)context.getValue(Context.KEY_OUTPUT_STREAM)) != null ? output : System.out;
         
@@ -70,8 +76,14 @@ public class CliConsole implements IOConsole{
             console = new ConsoleReader(input, new OutputStreamWriter(output));
         } catch (IOException ex) {
             throw new RuntimeException("Unable to initialize the console. "
-                    + " Program will stop now.");
+                    + " Program will stop now.", ex);
         }
+        
+//        // add command completor
+//        console.addCompletor(new ArgumentCompletor(
+//            new Completor[]{new CmdCompleter(), new CmdArgsCompleter()}
+//        ));
+//        console.setCompletionHandler(new CandidateListCompletionHandler());
         
         consoleThread = createConsoleThread();
         consoleThread.start();
@@ -103,14 +115,26 @@ public class CliConsole implements IOConsole{
             public void run() {
                 while (!Thread.interrupted()){
                     //Context threadContext = cloneContext(context);
+                    boolean handled = false;
                     String line = readInput(prompt.getValue(context));
                     context.putValue(Context.KEY_COMMAND_LINE_INPUT, line);
-                    if(interpretersAreValid){
+                    if(controllersAreValid){
                         for(Controller controller : controllers){
-                            controller.handle(context);
+                            Pattern pattern = controller.respondsTo();
+                            
+                            // Apply controller only if provided pattern matches.
+                            if(pattern != null && pattern.matcher(line).matches()){
+                                handled = handled || controller.handle(context);
+                            }
+
+                        }
+                        // was command line handled.
+                        if(!handled){
+                            writeOutput(String.format("%nCommand unhandled. "
+                                + "%nNo controller found to respond to [%s].%n%n",line)); 
                         }
                     }else{
-                        writeOutput(String.format("Warning: no command controllers(s) found.%n"));
+                        writeOutput(String.format("Warning: no controllers(s) found.%n"));
                     }
                 }
             }
@@ -123,8 +147,8 @@ public class CliConsole implements IOConsole{
      * Are there any controllers installed?
      * @param controllers 
      */
-    private boolean hasInterpreters(List<Controller> interpreters){
-        return (interpreters != null && interpreters.size() > 0) ? true : false;
+    private boolean haveControllers(List<Controller> controllers){
+        return (controllers != null && controllers.size() > 0) ? true : false;
     }
     
     private Context cloneContext (Context ctx){
@@ -133,4 +157,3 @@ public class CliConsole implements IOConsole{
         return newContext;
     }
 }
-    

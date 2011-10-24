@@ -19,17 +19,32 @@
  */
 package cli.clamshell.api;
 
+import java.util.regex.Pattern;
+
 /**
  * The role of the Controller component is to take a input from the command line
- * and decode it accordingly.  Simple implementations may do everything, however,
- * more sophisticated implementations may delegate workload to Command objects.
+ * and interpret it accordingly.  A simple implementation may include all logic, 
+ * however, more sophisticated implementations may delegate workload to Command 
+ * objects.
  * @author vladimir.vivien
  */
 public interface Controller extends Plugin{
     /**
-     * This is invoked when there is an input from the console to be interpreted.
-     * The input value is passed in the context as Context.KEY_COMMAND_LINE_INPUT
+     * This method is invoked when there is an input from the console to be interpreted.
+     * The input value is passed to the controller via the context instance 
+     * as Context.KEY_COMMAND_LINE_INPUT.  Implementors should return a boolean
+     * indicating if the controller handled the input.
+     * 
      * @param ctx instance of Context
+     * @return true - if handled by the controller, false if not.
      */
-    public void handle(Context ctx);
+    public boolean handle(Context ctx);
+    
+    /**
+     * This method returns a pre-compiled instance of the command-line pattern
+     * that the controller responds to.  This mechanism provides a command
+     * filter for the controller avoiding unnecessary handle() calls.
+     * @return 
+     */
+    public Pattern respondsTo();
 }
