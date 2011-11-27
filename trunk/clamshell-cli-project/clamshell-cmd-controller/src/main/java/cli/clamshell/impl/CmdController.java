@@ -31,8 +31,11 @@ import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 /**
- * This implementation of the InputController component uses the InputController/Command
- * pattern.  First, when the compnent is plugged in, it creates an internal
+ * This is a generic implementation of the InputController.
+ * It uses a simple InputController/Command pattern where the controller 
+ * delegates handling of the input to Command objects.
+ * 
+ * First, when the component is plugged in, it creates an internal
  * map of all of the commands found on the classpath.  Each Command instance 
  * is mapped to its Action string as a key.
  * 
@@ -51,7 +54,6 @@ public class CmdController implements InputController{
     private static final String CMD_PATTERN = "\\s*(\\w)+\\b.*";
     private static final Pattern pattern = Pattern.compile(CMD_PATTERN);
     private String[] expectedInputs;
-    private Map<String, String[]> commandHints;
     
     /**
      * Handles incoming command-line input.  CmdController first splits the
@@ -94,7 +96,7 @@ public class CmdController implements InputController{
         Set<String> expectedCmds = new TreeSet<String>();
         if(loadedCmds.size() > 0){
             Map<String,Command> commands = new HashMap<String, Command>(loadedCmds.size());
-            commandHints = new HashMap<String, String[]>();
+            
             for(Command cmd : loadedCmds){
                 cmd.plug(plug);
                 Command.Descriptor desc = cmd.getDescriptor();
@@ -110,6 +112,7 @@ public class CmdController implements InputController{
                     );
                 }
             }
+            
             // save command map in Context;
             plug.putValue(Context.KEY_COMMAND_MAP, commands);
             expectedInputs = expectedCmds.toArray(new String[0]);
@@ -125,10 +128,6 @@ public class CmdController implements InputController{
 
     public String[] getExpectedInputs() {
         return expectedInputs;
-    }
-
-    public String[] getInputHints(String input) {
-        return commandHints.get(input);
     }
         
     private void collectCommandHints(final Set<String> collection, final Command cmd){

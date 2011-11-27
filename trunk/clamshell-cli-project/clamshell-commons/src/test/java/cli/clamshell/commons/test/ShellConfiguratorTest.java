@@ -20,10 +20,7 @@
 package cli.clamshell.commons.test;
 
 import cli.clamshell.commons.ShellConfigurator;
-import java.io.File;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Map;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -36,7 +33,7 @@ import org.junit.Test;
  */
 public class ShellConfiguratorTest {
     static {
-        System.setProperty(ShellConfigurator.KEY_PROP_FILE, "../mock-env/conf/cli.properties");
+        System.setProperty(ShellConfigurator.KEY_CONFIG_FILE, "../mock-env/conf/cli.config");
     }
     ShellConfigurator config;
     
@@ -69,10 +66,31 @@ public class ShellConfiguratorTest {
 
     
     @Test
-    public void testPropFile() {
-        String val1 = (String) config.getProperty("key1");
-        assert val1.equals("value1");
-        String val2 = (String) config.getProperty("key2");
-        assert val2.equals("value2");
+    public void testLoadConfigMap() {
+        Map<String,Map<String,?>> configMap = config.getConfigMap();
+        assert configMap != null;
+        assert configMap.size() == 2;
+        assert configMap.get(ShellConfigurator.KEY_CONFIG_PROPS) != null;
+        assert configMap.get(ShellConfigurator.KEY_CONFIG_PROPS).size() == 2;
+    }
+    
+    @Test
+    public void testGetPropertiesMap() {
+        Map<String,String> props = config.getPropertiesMap();
+        assert props != null;
+        assert props.size() == 2;
+        assert props.containsKey(ShellConfigurator.KEY_CONFIG_LIBIDR);
+        assert props.containsKey(ShellConfigurator.KEY_CONFIG_PLUGINSDIR);
+    }
+    
+    @Test
+    public void testGetControllersMap(){
+        Map<String,?> ctrls = config.getControllersMap();
+        assert ctrls != null;
+        assert ctrls.size() == 2;
+        assert ctrls.containsKey("cli.clamshell.impl.CmdController");
+        Map<String,String> ctrl1 = (Map<String,String>) ctrls.get("cli.clamshell.impl.CmdController");
+        assert ctrl1 != null;
+        assert ctrl1.get("activated").equals("true");
     }
 }

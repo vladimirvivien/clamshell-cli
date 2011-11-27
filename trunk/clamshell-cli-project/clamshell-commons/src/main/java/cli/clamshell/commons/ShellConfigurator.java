@@ -21,11 +21,16 @@ package cli.clamshell.commons;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import cli.clamshell.api.Configurator;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import java.io.FileReader;
+import java.lang.reflect.Type;
+import java.util.Map;
 
 /**
  * This is a default implementation of the Configurator.
@@ -33,23 +38,17 @@ import cli.clamshell.api.Configurator;
  * @author vvivien
  */
 public class ShellConfigurator implements Configurator{
-    private static final Logger log = Logger.getLogger(ShellConfigurator.class.getName());        
-    private static String CONFIG_FILE_PATH = null;
-
-    private Properties properties;
+    private static final Logger log = Logger.getLogger(ShellConfigurator.class.getName());
+    private static final String CONFIG_FILE_PATH = "./" + VALUE_CONFIG_FILE;
+    private static File configFile;
+    private Map<String, Map<String,?>> configMap;
 
     // setup path to properties file
-    static{
-        try{
-            CONFIG_FILE_PATH = new File(
-                    (System.getProperty(KEY_PROP_FILE) == null)
-                    ? VALUE_DIR_CONF + "/" + VALUE_PROP_FILE
-                    : System.getProperty(KEY_PROP_FILE)
-            ).getCanonicalPath();
-        }catch(IOException ex){
-            CONFIG_FILE_PATH = null;
-            log.log(Level.SEVERE, "IO Error while configuring properties file: ", ex.getMessage());
-        }
+    static {
+        configFile = new File(
+            (System.getProperty(KEY_CONFIG_FILE) != null)
+             ? System.getProperty(KEY_CONFIG_FILE)
+             : CONFIG_FILE_PATH);
     }
 
     private ShellConfigurator(){
@@ -60,24 +59,30 @@ public class ShellConfigurator implements Configurator{
         return new ShellConfigurator();
     }
 
-    public Object getProperty(String key){
-        return properties.get(key);
+    public Map<String, ?> getControllersMap() {
+        return configMap.get(KEY_CONFIG_CTRLS);
+    }
+    
+    public Map<String,String> getPropertiesMap(){
+        return (Map<String, String>) configMap.get(KEY_CONFIG_PROPS);
+    }
+    
+    public Map<String,Map<String, ?>> getConfigMap(){
+        return configMap;
     }
 
     private void initialize() {
-        properties = new Properties();
-        if(CONFIG_FILE_PATH != null){
-            File propFile = new File(CONFIG_FILE_PATH);
-            if(propFile.exists() && propFile.isFile()){
-                try{
-                    FileInputStream propStream = new FileInputStream(propFile);
-                    properties.load(propStream);
-                }catch(Exception ex){
-                    log.log(Level.SEVERE, "IO Error while loading properties file: ", ex.getMessage());
-                }
+        if(configFile != null && configFile.exists() && configFile.isFile()){
+            Gson gson = new Gson();
+            Type mapType = new TypeToken<Map<String,? extends Object>>(){}.getType();
+            try {
+                configMap = gson.fromJson(new FileReader(configFile), mapType);
+            } catch (FileNotFoundException ex) {
+                throw new RuntimeException(ex);
             }
         }else{
-            log.log(Level.WARNING, "Properties file not loaded correctly.");
+            throw new RuntimeException("Unable to load clamshell config file."
+                    + "  Clamshell needs a valid config file to run.");
         }
     }
     

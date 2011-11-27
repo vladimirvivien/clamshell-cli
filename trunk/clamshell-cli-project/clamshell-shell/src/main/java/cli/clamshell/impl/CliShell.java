@@ -27,6 +27,7 @@ import cli.clamshell.api.InputController;
 import cli.clamshell.api.IOConsole;
 import cli.clamshell.api.Shell;
 import cli.clamshell.api.SplashScreen;
+import java.io.File;
 import java.util.List;
 
 /**
@@ -63,7 +64,8 @@ public class CliShell implements Shell{
         IOConsole console = plug.getIoConsole();
         if(console == null){
             System.out.printf("%nUnable to find a Console component in plugins directory [%s]."
-                    + " ClamShell-Cli requires a Console component. Exiting...%n", Configurator.VALUE_DIR_PLUGINS);
+                    + " ClamShell-Cli requires a Console component. Exiting...%n", 
+                    ((File)plug.getValue(Configurator.KEY_CONFIG_PLUGINSDIR)).getName());
             System.exit(1);
         }
         

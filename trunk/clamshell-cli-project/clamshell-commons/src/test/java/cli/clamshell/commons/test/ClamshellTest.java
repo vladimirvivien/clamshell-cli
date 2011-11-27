@@ -43,8 +43,7 @@ public class ClamshellTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        System.setProperty(Configurator.KEY_DIR_CONF, "../mock-env/conf");
-        System.setProperty(Configurator.KEY_DIR_PLUGINS, "../mock-env/plugins");
+        //System.setProperty(Configurator., "../mock-env/plugins");
     }
 
     @AfterClass
@@ -62,7 +61,7 @@ public class ClamshellTest {
     @Test
     public void testRuntimeLoadPlugins() throws Exception{
         ClassLoader cl = Clamshell.Runtime.createClassLoaderForPath(
-            new File[]{new File(Configurator.VALUE_DIR_PLUGINS)}, 
+            new File[]{new File("../mock-env/plugins")}, 
             Thread.currentThread().getContextClassLoader()
         );  
         List<Plugin> plugins = Clamshell.Runtime.loadPlugins(cl);

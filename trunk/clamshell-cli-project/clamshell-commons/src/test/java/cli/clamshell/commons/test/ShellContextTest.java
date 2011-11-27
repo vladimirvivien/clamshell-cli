@@ -38,10 +38,7 @@ import org.junit.Test;
  */
 public class ShellContextTest {
     static {
-        System.setProperty(Configurator.KEY_PROP_FILE, "../mock-env/conf/cli.properties");
-        System.setProperty(Configurator.KEY_DIR_CONF, "../mock-env/conf");
-        System.setProperty(Configurator.KEY_DIR_PLUGINS, "../mock-env/plugins");
-
+        System.setProperty(Configurator.KEY_CONFIG_FILE, "../mock-env/conf/cli.config");
     }
     private ShellContext context;
     

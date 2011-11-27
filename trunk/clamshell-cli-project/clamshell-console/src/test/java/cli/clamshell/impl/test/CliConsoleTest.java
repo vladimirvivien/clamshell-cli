@@ -48,7 +48,7 @@ public class CliConsoleTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        //System.setProperty(Configurator.KEY_DIR_CONF, "../mock-env/conf");
+        System.setProperty(Configurator.KEY_CONFIG_FILE, "../mock-env/conf/cli.config");
         //System.setProperty(Configurator.KEY_DIR_PLUGINS, "../mock-env/plugins");
     }
 

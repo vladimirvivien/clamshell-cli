@@ -78,7 +78,8 @@ public class ShellContext implements Context{
     private ClassLoader getClassLoader(){
         if(classLoader != null) return classLoader; // return if already loaded.
         
-        File pluginsDir = new File(ShellConfigurator.VALUE_DIR_PLUGINS);
+        String pluginsDirName = config.getPropertiesMap().get(ShellConfigurator.KEY_CONFIG_PLUGINSDIR);
+        File pluginsDir = new File(pluginsDirName);
         if(pluginsDir.exists() && pluginsDir.isDirectory()){
             try {
                 classLoader = Clamshell.Runtime.createClassLoaderForPath(
@@ -89,7 +90,8 @@ public class ShellContext implements Context{
                throw new RuntimeException(ex);
             }
         }else{
-            throw new RuntimeException ("Unable to find directory [plugins]. Clamshell will stop.");
+            throw new RuntimeException (String.format("Unable to find plugins directory "
+                    + "[%s]. Clamshell will stop.", pluginsDir.getAbsolutePath()));
         }
         
         return classLoader;
