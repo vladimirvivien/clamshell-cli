@@ -63,7 +63,7 @@ public class ExitCmd implements Command {
             }
 
             @Override
-            public Map<String, String> getArgsDescription() {
+            public Map<String, String> getArguments() {
                 return Collections.emptyMap();
             }
         };

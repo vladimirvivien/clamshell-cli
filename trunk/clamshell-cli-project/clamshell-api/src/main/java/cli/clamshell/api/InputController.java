@@ -22,13 +22,13 @@ package cli.clamshell.api;
 import java.util.regex.Pattern;
 
 /**
- * The role of the Controller component is to take a input from the command line
+ * The role of the InputController component is to take a input from the command line
  * and interpret it accordingly.  A simple implementation may include all logic, 
  * however, more sophisticated implementations may delegate workload to Command 
  * objects.
  * @author vladimir.vivien
  */
-public interface Controller extends Plugin{
+public interface InputController extends Plugin{
     /**
      * This method is invoked when there is an input from the console to be interpreted.
      * The input value is passed to the controller via the context instance 
@@ -47,4 +47,12 @@ public interface Controller extends Plugin{
      * @return 
      */
     public Pattern respondsTo();
+    
+    /**
+     * This method returns a collection of input values that the controller can 
+     * expect from command-line.  This information can be used in help 
+     * implementation strategies.
+     * @return Array of String representing expected inputs.
+     */
+    public String[] getExpectedInputs();
 }

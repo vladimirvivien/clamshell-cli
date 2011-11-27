@@ -53,4 +53,7 @@ public interface IOConsole extends Plugin{
      * @param value value to be written
      */
     public void writeOutput(String value);
+    
+    
+    
 }

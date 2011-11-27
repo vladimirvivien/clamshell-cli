@@ -90,14 +90,14 @@ public class SysInfoCmd implements Command{
                 .append(Configurator.VALUE_LINE_SEP)
                 .append("sysinfo [options]").append(Configurator.VALUE_LINE_SEP);
             
-            for(Map.Entry<String,String> entry : getArgsDescription().entrySet()){
+            for(Map.Entry<String,String> entry : getArguments().entrySet()){
                 result.append(String.format("%n%1$15s %2$2s %3$s", entry.getKey(), " ", entry.getValue()));
             }
             
             return result.toString();
         }
 
-        public Map<String, String> getArgsDescription() {
+        public Map<String, String> getArguments() {
             if(commander == null) commander = new JCommander(new SysInfoParams());
             Map<String, String> result = new HashMap<String,String>();
             List<ParameterDescription> params = commander.getParameters();

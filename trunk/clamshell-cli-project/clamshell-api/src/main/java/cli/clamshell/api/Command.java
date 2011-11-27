@@ -77,10 +77,10 @@ public interface Command extends Plugin {
         public String getUsage();
         
         /**
-         * Use this method to provide a map describing command arguments.
-         * @return Map<String,String>
+         * Use this method is to provide a map of the command arguments.
+         * @return Map<String,String> key is argument, value = description of arg.
          */
-        public Map<String,String> getArgsDescription();
+        public Map<String,String> getArguments();
         
         
     }

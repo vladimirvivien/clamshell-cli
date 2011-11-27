@@ -21,18 +21,18 @@ package cli.clamshell.impl;
 
 import cli.clamshell.api.Configurator;
 import cli.clamshell.api.Context;
-import cli.clamshell.api.Controller;
+import cli.clamshell.api.InputController;
 import cli.clamshell.api.IOConsole;
 import java.util.regex.Pattern;
 
 /**
- * A simple implementation of a Controller that echos back input send to the 
+ * A simple implementation of a InputController that echos back input send to the 
  * command-line.  This is meant to be demo toy controller and should be removed
  * from a production deployment.
  * 
  * @author vladimir.vivien
  */
-public class EchoController implements Controller{
+public class EchoController implements InputController{
     private static final String PATTERN_STR = ".+";
     private Pattern pattern;
     
@@ -53,6 +53,11 @@ public class EchoController implements Controller{
 
     public Pattern respondsTo() {
         return pattern;
+    }
+
+    @Override
+    public String[] getExpectedInputs() {
+        return null;
     }
     
 }

@@ -21,22 +21,19 @@ package cli.clamshell.impl;
 
 import cli.clamshell.api.Context;
 import cli.clamshell.api.IOConsole;
-import cli.clamshell.api.Controller;
+import cli.clamshell.api.InputController;
 import cli.clamshell.api.Prompt;
 import cli.clamshell.api.Shell;
-import cli.clamshell.commons.ShellContext;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
-import jline.ArgumentCompletor;
 import jline.CandidateListCompletionHandler;
-import jline.CompletionHandler;
-import jline.Completor;
 import jline.ConsoleReader;
-import jline.NullCompletor;
 import jline.SimpleCompletor;
 
 /**
@@ -49,11 +46,12 @@ public class CliConsole implements IOConsole{
     private Shell shell;
     private Prompt prompt;
     private ConsoleReader console;
-    private List<Controller> controllers;
+    private List<InputController> controllers;
     private boolean controllersAreValid;
     private InputStream input;
     private OutputStream output;
     private Thread consoleThread;
+    private Map<String, String[]> inputHints;
 
     public InputStream getInputStream() {
         return input;
@@ -67,10 +65,11 @@ public class CliConsole implements IOConsole{
         context = plug;
         shell = plug.getShell();
         prompt = plug.getPrompt();
-        controllers = plug.getPluginsByType(Controller.class);
+        controllers = plug.getPluginsByType(InputController.class);
         controllersAreValid = haveControllers(controllers);
         input = (input = (InputStream)context.getValue(Context.KEY_INPUT_STREAM)) != null ? input : System.in;
         output = (output = (OutputStream)context.getValue(Context.KEY_OUTPUT_STREAM)) != null ? output : System.out;
+        inputHints = new HashMap<String, String[]>();
         
         try {
             console = new ConsoleReader(input, new OutputStreamWriter(output));
@@ -79,11 +78,8 @@ public class CliConsole implements IOConsole{
                     + " Program will stop now.", ex);
         }
         
-//        // add command completor
-//        console.addCompletor(new ArgumentCompletor(
-//            new Completor[]{new CmdCompleter(), new CmdArgsCompleter()}
-//        ));
-//        console.setCompletionHandler(new CandidateListCompletionHandler());
+        aggregateExpectedInputs();        
+        console.setCompletionHandler(new CandidateListCompletionHandler());
         
         consoleThread = createConsoleThread();
         consoleThread.start();
@@ -119,7 +115,7 @@ public class CliConsole implements IOConsole{
                     String line = readInput(prompt.getValue(context));
                     context.putValue(Context.KEY_COMMAND_LINE_INPUT, line);
                     if(controllersAreValid){
-                        for(Controller controller : controllers){
+                        for(InputController controller : controllers){
                             Pattern pattern = controller.respondsTo();
                             
                             // Apply controller only if provided pattern matches.
@@ -147,13 +143,19 @@ public class CliConsole implements IOConsole{
      * Are there any controllers installed?
      * @param controllers 
      */
-    private boolean haveControllers(List<Controller> controllers){
+    private boolean haveControllers(List<InputController> controllers){
         return (controllers != null && controllers.size() > 0) ? true : false;
     }
     
-    private Context cloneContext (Context ctx){
-        Context newContext = ShellContext.createInstance();
-        newContext.putValues(ctx.getValues());
-        return newContext;
+    /**
+     * Collection expected input values to build suggestion lists.
+     */
+    private void aggregateExpectedInputs(){
+        for(InputController ctrl : controllers){
+            String[] expectedInputs = ctrl.getExpectedInputs();
+            if(expectedInputs != null){
+                console.addCompletor(new SimpleCompletor(expectedInputs));
+            }
+        }
     }
 }

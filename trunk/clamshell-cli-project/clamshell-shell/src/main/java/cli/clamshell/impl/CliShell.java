@@ -23,7 +23,7 @@ package cli.clamshell.impl;
 
 import cli.clamshell.api.Configurator;
 import cli.clamshell.api.Context;
-import cli.clamshell.api.Controller;
+import cli.clamshell.api.InputController;
 import cli.clamshell.api.IOConsole;
 import cli.clamshell.api.Shell;
 import cli.clamshell.api.SplashScreen;
@@ -77,8 +77,8 @@ public class CliShell implements Shell{
         }
         
         // plug in controllers
-        List<Controller> controllers = plug.getPluginsByType(Controller.class);
-        for (Controller ctrl : controllers){
+        List<InputController> controllers = plug.getPluginsByType(InputController.class);
+        for (InputController ctrl : controllers){
             ctrl.plug(plug);
         }
         
