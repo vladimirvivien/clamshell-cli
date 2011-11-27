@@ -48,7 +48,7 @@ import java.util.regex.Pattern;
  * @author vladimir.vivien
  */
 public class CmdController implements InputController{
-    private static final String CMD_PATTERN = "^(\\w)+\\s*.*";
+    private static final String CMD_PATTERN = "\\s*(\\w)+\\b.*";
     private static final Pattern pattern = Pattern.compile(CMD_PATTERN);
     private String[] expectedInputs;
     private Map<String, String[]> commandHints;
@@ -61,10 +61,9 @@ public class CmdController implements InputController{
     public boolean handle(Context ctx) {
         String cmdLine = (String)ctx.getValue(Context.KEY_COMMAND_LINE_INPUT);
         boolean handled = false;
-        
         // handle command line entry.  NOTE: value can be null
         if(cmdLine != null && !cmdLine.trim().isEmpty()){
-            String[] tokens = cmdLine.split("\\s+");
+            String[] tokens = cmdLine.trim().split("\\s+");
             Map<String,Command> commands = (Map<String,Command>) ctx.getValue(Context.KEY_COMMAND_MAP);
             if(!commands.isEmpty()){
                 Command cmd = commands.get(tokens[0]);

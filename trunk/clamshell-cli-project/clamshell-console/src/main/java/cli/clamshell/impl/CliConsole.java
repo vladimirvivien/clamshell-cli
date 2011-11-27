@@ -120,7 +120,8 @@ public class CliConsole implements IOConsole{
                             
                             // Apply controller only if provided pattern matches.
                             if(pattern != null && pattern.matcher(line).matches()){
-                                handled = handled || controller.handle(context);
+                                boolean ctrlResult = controller.handle(context);
+                                handled = handled || ctrlResult;
                             }
 
                         }
