@@ -54,5 +54,5 @@ public interface Configurator {
      * Convenince method to return the "controllers" section of config map.
      * @return Map<String,Map<String,? extends Object>>
      */
-    public Map<String,?> getControllersMap();
+    public Map<String,Map<String, ? extends Object>> getControllersMap();
 }

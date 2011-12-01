@@ -19,6 +19,7 @@
  */
 package cli.clamshell.impl;
 
+import cli.clamshell.api.Configurator;
 import cli.clamshell.api.Context;
 import cli.clamshell.api.IOConsole;
 import cli.clamshell.api.InputController;
@@ -43,6 +44,7 @@ import jline.SimpleCompletor;
  */
 public class CliConsole implements IOConsole{
     private Context context;
+    private Configurator config;
     private Shell shell;
     private Prompt prompt;
     private ConsoleReader console;
@@ -63,6 +65,7 @@ public class CliConsole implements IOConsole{
 
     public void plug(Context plug) {
         context = plug;
+        config = plug.getConfigurator();
         shell = plug.getShell();
         prompt = plug.getPrompt();
         controllers = plug.getPluginsByType(InputController.class);
@@ -117,9 +120,14 @@ public class CliConsole implements IOConsole{
                     if(controllersAreValid){
                         for(InputController controller : controllers){
                             Pattern pattern = controller.respondsTo();
+                            Map<String,String> ctrlMap = getControllerMap(controller);
                             
+                            Boolean enabled = false;
+                            if(ctrlMap != null && ctrlMap.get("enabled") != null){
+                                enabled = Boolean.valueOf(ctrlMap.get("enabled"));
+                            }
                             // Apply controller only if provided pattern matches.
-                            if(pattern != null && pattern.matcher(line).matches()){
+                            if(pattern != null && pattern.matcher(line).matches() && enabled){
                                 boolean ctrlResult = controller.handle(context);
                                 handled = handled || ctrlResult;
                             }
@@ -158,5 +166,14 @@ public class CliConsole implements IOConsole{
                 console.addCompletor(new SimpleCompletor(expectedInputs));
             }
         }
+    }
+    
+    private Map<String,String> getControllerMap(InputController ctrl){
+        String ctrlClassName = ctrl.getClass().getName();
+        Map<String,Map<String,? extends Object>> ctrlsMap =  config.getControllersMap();
+        if(ctrlsMap != null){
+            return (Map<String, String>) ctrlsMap.get(ctrlClassName);
+        }
+        return null;
     }
 }

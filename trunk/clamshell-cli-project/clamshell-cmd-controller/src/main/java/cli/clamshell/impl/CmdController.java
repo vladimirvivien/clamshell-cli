@@ -20,6 +20,7 @@
 package cli.clamshell.impl;
 
 import cli.clamshell.api.Command;
+import cli.clamshell.api.Configurator;
 import cli.clamshell.api.Context;
 import cli.clamshell.api.InputController;
 import java.util.Arrays;
@@ -51,8 +52,7 @@ import java.util.regex.Pattern;
  * @author vladimir.vivien
  */
 public class CmdController implements InputController{
-    private static final String CMD_PATTERN = "\\s*(\\w)+\\b.*";
-    private static final Pattern pattern = Pattern.compile(CMD_PATTERN);
+    private Pattern pattern = null;
     private String[] expectedInputs;
     
     /**
@@ -102,9 +102,14 @@ public class CmdController implements InputController{
                 Command.Descriptor desc = cmd.getDescriptor();
                 if(desc != null){
                     String cmdName = desc.getName();
-                    commands.put(cmdName, cmd);
-                    expectedCmds.add(cmdName);
-                    collectCommandHints(expectedCmds, cmd);
+                    pattern = configureInputPattern(plug);
+                    
+                    if(pattern.matcher(cmdName).matches()){
+                        commands.put(cmdName, cmd);
+                        expectedCmds.add(cmdName);
+                        collectCommandHints(expectedCmds, cmd);
+                    }
+                    
                 }else{
                     plug.getIoConsole().writeOutput(
                         String.format("%nCommand [%] does not have a Command.Descriptor defined."
@@ -129,7 +134,12 @@ public class CmdController implements InputController{
     public String[] getExpectedInputs() {
         return expectedInputs;
     }
-        
+    
+    /**
+     * Collects input hints from the provided command.
+     * @param collection
+     * @param cmd 
+     */
     private void collectCommandHints(final Set<String> collection, final Command cmd){
         Map<String,String> args = (cmd.getDescriptor() != null ) ? cmd.getDescriptor().getArguments() : null;
         
@@ -144,4 +154,26 @@ public class CmdController implements InputController{
             }
         }
     }
+    
+    /**
+     * Configures the respondsTo() input pattern from the config file.
+     * If the file does not contain a pattern, it defaults to an interanl pattern.
+     * @param ctx
+     * @return Pattern configured pattern.
+     */
+    private Pattern configureInputPattern(Context ctx){
+        String ctrlClassName = this.getClass().getName();
+        Configurator config = ctx.getConfigurator();
+        
+        Map<String,Map<String,? extends Object>> ctrlsMap = (Map<String,Map<String,? extends Object>>) config.getControllersMap();
+        
+        if(ctrlsMap != null){
+            Map<String, String> map = (Map<String, String>) ctrlsMap.get(ctrlClassName);
+            String inputPattern = map.get("inputPattern");
+            return (inputPattern != null) ? Pattern.compile(inputPattern) : null;
+        }
+        
+        return Pattern.compile("\\s*(\\w)+\\b.*");
+    }
+    
 }

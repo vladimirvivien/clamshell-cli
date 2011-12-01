@@ -59,8 +59,8 @@ public class ShellConfigurator implements Configurator{
         return new ShellConfigurator();
     }
 
-    public Map<String, ?> getControllersMap() {
-        return configMap.get(KEY_CONFIG_CTRLS);
+    public Map<String, Map<String,? extends Object>> getControllersMap() {
+        return (Map<String, Map<String, ? extends Object>>) configMap.get(KEY_CONFIG_CTRLS);
     }
     
     public Map<String,String> getPropertiesMap(){
@@ -81,8 +81,11 @@ public class ShellConfigurator implements Configurator{
                 throw new RuntimeException(ex);
             }
         }else{
-            throw new RuntimeException("Unable to load clamshell config file."
-                    + "  Clamshell needs a valid config file to run.");
+            throw new RuntimeException(String.format(
+                "Unable to find config file [%s]."
+                + " Clamshell looks for config file in root directory"
+                + " or via property -D%s.", configFile, KEY_CONFIG_FILE
+            ));
         }
     }
     
