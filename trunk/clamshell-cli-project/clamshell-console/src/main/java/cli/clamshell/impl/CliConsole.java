@@ -25,6 +25,7 @@ import cli.clamshell.api.IOConsole;
 import cli.clamshell.api.InputController;
 import cli.clamshell.api.Prompt;
 import cli.clamshell.api.Shell;
+import cli.clamshell.api.SplashScreen;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -68,8 +69,6 @@ public class CliConsole implements IOConsole{
         config = plug.getConfigurator();
         shell = plug.getShell();
         prompt = plug.getPrompt();
-        controllers = plug.getPluginsByType(InputController.class);
-        controllersAreValid = haveControllers(controllers);
         input = (input = (InputStream)context.getValue(Context.KEY_INPUT_STREAM)) != null ? input : System.in;
         output = (output = (OutputStream)context.getValue(Context.KEY_OUTPUT_STREAM)) != null ? output : System.out;
         inputHints = new HashMap<String, String[]>();
@@ -81,8 +80,28 @@ public class CliConsole implements IOConsole{
                     + " Program will stop now.", ex);
         }
         
-        aggregateExpectedInputs();        
-        console.setCompletionHandler(new CandidateListCompletionHandler());
+        // plug in installed input controllers
+        controllers = plug.getPluginsByType(InputController.class);
+        if(controllers.size() > 0){
+            for (InputController ctrl : controllers){
+                ctrl.plug(plug);
+            }
+            aggregateExpectedInputs();        
+            console.setCompletionHandler(new CandidateListCompletionHandler());
+        }else{
+            throw new RuntimeException("Unable to initialize Clamshell-Cli. "
+                + " No InputController instances found on classpath. Exiting...");            
+        }
+                
+        // show splash on the default OutputStream
+        List<SplashScreen> screens = plug.getPluginsByType(SplashScreen.class);
+        if(screens != null && screens.size() > 0){
+            for(SplashScreen sc : screens){
+                sc.plug(plug);
+                sc.render(plug);
+            }
+        }
+
         
         consoleThread = createConsoleThread();
         consoleThread.start();
@@ -117,15 +136,11 @@ public class CliConsole implements IOConsole{
                     boolean handled = false;
                     String line = readInput(prompt.getValue(context));
                     context.putValue(Context.KEY_COMMAND_LINE_INPUT, line);
-                    if(controllersAreValid){
+                    if(controllersExist()){
                         for(InputController controller : controllers){
                             Pattern pattern = controller.respondsTo();
-                            Map<String,String> ctrlMap = getControllerMap(controller);
+                            Boolean enabled = controller.isEnabled();
                             
-                            Boolean enabled = false;
-                            if(ctrlMap != null && ctrlMap.get("enabled") != null){
-                                enabled = Boolean.valueOf(ctrlMap.get("enabled"));
-                            }
                             // Apply controller only if provided pattern matches.
                             if(pattern != null && pattern.matcher(line).matches() && enabled){
                                 boolean ctrlResult = controller.handle(context);
@@ -152,7 +167,7 @@ public class CliConsole implements IOConsole{
      * Are there any controllers installed?
      * @param controllers 
      */
-    private boolean haveControllers(List<InputController> controllers){
+    private boolean controllersExist(){
         return (controllers != null && controllers.size() > 0) ? true : false;
     }
     
@@ -167,13 +182,5 @@ public class CliConsole implements IOConsole{
             }
         }
     }
-    
-    private Map<String,String> getControllerMap(InputController ctrl){
-        String ctrlClassName = ctrl.getClass().getName();
-        Map<String,Map<String,? extends Object>> ctrlsMap =  config.getControllersMap();
-        if(ctrlsMap != null){
-            return (Map<String, String>) ctrlsMap.get(ctrlClassName);
-        }
-        return null;
-    }
+
 }

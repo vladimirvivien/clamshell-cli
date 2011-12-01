@@ -32,6 +32,7 @@ import cli.clamshell.api.Configurator;
 import cli.clamshell.api.Context;
 import cli.clamshell.api.Plugin;
 import cli.clamshell.api.Shell;
+import java.lang.String;
 
 /**
  * Implementation of the Context used to provide shell information at runtime.
@@ -216,6 +217,30 @@ public class ShellContext implements Context{
         if(commands != null) return commands;
         commands = getPluginsByType(Command.class);
         return commands;
+    }
+    
+    @Override
+    public List<Command> getCommandsByNamespace(String namespace){
+        List<Command> result   = new ArrayList();
+        for(Command cmd: getCommands()){
+            Command.Descriptor desc = cmd.getDescriptor();
+            if(desc != null && desc.getNamespace().equals(namespace)){
+                result.add(cmd);
+            }
+        }
+        return result;
+    }
+    
+    @Override
+    public Map<String,Command> mapCommands(List<Command> commands){
+        Map<String,Command> cmdMap = new HashMap<String,Command>();
+        for(Command cmd : commands){
+            Command.Descriptor desc = cmd.getDescriptor();
+            if(desc != null && desc.getName() != null){
+                cmdMap.put(desc.getName(), cmd);
+            }
+        }
+        return cmdMap;
     }
     
     private class DefaultPrompt implements Prompt{

@@ -32,8 +32,9 @@ import java.util.List;
 
 /**
  * This implementation of the Shell component is for a simple command-line system.
- * The shell loads its dependent components (clamshell plugins) and activates
- * them by calling plug().
+ * In this implementation, the shell loads the IOConsole for setup.
+ * It then delegates loading of additional components (InputControllers, Commands)
+ * to the IOConsole instance found in the classpath.
  * @author vladimir.vivien
  */
 public class CliShell implements Shell{
@@ -63,29 +64,17 @@ public class CliShell implements Shell{
     public void plug(Context plug) {
         IOConsole console = plug.getIoConsole();
         if(console == null){
-            System.out.printf("%nUnable to find a Console component in plugins directory [%s]."
-                    + " ClamShell-Cli requires a Console component. Exiting...%n", 
-                    ((File)plug.getValue(Configurator.KEY_CONFIG_PLUGINSDIR)).getName());
-            System.exit(1);
+            throw new RuntimeException(
+                String.format("%nUnable to find required IOConsole component in"
+                + " plugins directory [%s]."
+                + "Exiting...%n", 
+                ((File)plug.getValue(Configurator.KEY_CONFIG_PLUGINSDIR)).getName())
+            );
         }
         
-        // show splash on the default OutputStream
-        List<SplashScreen> screens = plug.getPluginsByType(SplashScreen.class);
-        if(screens != null && screens.size() > 0){
-            for(SplashScreen sc : screens){
-                sc.plug(plug);
-                sc.render(plug);
-            }
-        }
-        
-        // plug in controllers
-        List<InputController> controllers = plug.getPluginsByType(InputController.class);
-        for (InputController ctrl : controllers){
-            ctrl.plug(plug);
-        }
-        
+                
         //launch console
-        console.plug(plug);
+        console.plug(plug);        
     }
     
 }

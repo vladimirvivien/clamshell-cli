@@ -137,4 +137,21 @@ public interface Context{
      * @return list of Command instances.
      */
     public List<Command> getCommands();
+    
+    /**
+     * A convenience method to retrieve Command instances from the classpath
+     * using the Command.Descriptor.getNamespace() value.
+     * 
+     * @param namespace namespace filter used to retrieve commands
+     * @return List<Command>
+     */
+    public List<Command> getCommandsByNamespace(String namespace);
+    
+    /**
+     * Maps all of the commands.  The default implementation should map
+     * each command using Command.Descriptor.getName() as the key.
+     * @param commands a collection of commands to map.
+     * @return Map<String, Command> where Command.Descriptor.getName() is the key. 
+     */
+    public Map<String,Command> mapCommands(List<Command> commands);
 }

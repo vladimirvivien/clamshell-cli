@@ -51,6 +51,7 @@ import java.util.Map.Entry;
  * @author vvivien
  */
 public class SysInfoCmd implements Command{
+    private static final String NAMESPACE = "syscmd";
     private static final String CMD_NAME = "sysinfo";
     private SysInfoDescriptor descriptor;
     
@@ -71,19 +72,26 @@ public class SysInfoCmd implements Command{
     private class SysInfoDescriptor implements Command.Descriptor {
         private JCommander commander;
         SysInfoParams parameters;
-        
+                
         public void setCommandArgs(String[] args){
             commander = new JCommander((parameters=new SysInfoParams()), args);
         }
-            
+
+        @Override public String getNamespace() {
+            return NAMESPACE;
+        }
+        
+        @Override
         public String getName() {
             return CMD_NAME;
         }
 
+        @Override
         public String getDescription() {
             return "Displays current JVM runtime information.";
         }
 
+        @Override
         public String getUsage() {
             StringBuilder result = new StringBuilder();
             result
@@ -111,7 +119,9 @@ public class SysInfoCmd implements Command{
     }
     
     public Descriptor getDescriptor() {
-        return descriptor;
+        return (descriptor !=  null) ? 
+            descriptor : 
+            (descriptor = new SysInfoDescriptor());
     }
 
     public Object execute(Context ctx) {
@@ -160,7 +170,7 @@ public class SysInfoCmd implements Command{
     }
 
     public void plug(Context plug) {
-        descriptor = new SysInfoDescriptor();
+        //descriptor = new SysInfoDescriptor();
     }
     
     

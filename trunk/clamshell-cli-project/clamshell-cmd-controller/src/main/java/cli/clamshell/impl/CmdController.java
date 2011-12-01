@@ -20,11 +20,9 @@
 package cli.clamshell.impl;
 
 import cli.clamshell.api.Command;
-import cli.clamshell.api.Configurator;
 import cli.clamshell.api.Context;
-import cli.clamshell.api.InputController;
+import cli.clamshell.commons.AnInputController;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,22 +49,21 @@ import java.util.regex.Pattern;
  * 
  * @author vladimir.vivien
  */
-public class CmdController implements InputController{
-    private Pattern pattern = null;
-    private String[] expectedInputs;
-    
+public class CmdController extends AnInputController{
+    private Map<String,Command> commands;
+
     /**
      * Handles incoming command-line input.  CmdController first splits the
      * input and uses token[0] as the action name mapped to the Command.
      * @param ctx the shell context.
      */
+    @Override
     public boolean handle(Context ctx) {
         String cmdLine = (String)ctx.getValue(Context.KEY_COMMAND_LINE_INPUT);
         boolean handled = false;
         // handle command line entry.  NOTE: value can be null
         if(cmdLine != null && !cmdLine.trim().isEmpty()){
             String[] tokens = cmdLine.trim().split("\\s+");
-            Map<String,Command> commands = (Map<String,Command>) ctx.getValue(Context.KEY_COMMAND_MAP);
             if(!commands.isEmpty()){
                 Command cmd = commands.get(tokens[0]);
                 if(cmd != null){
@@ -91,89 +88,27 @@ public class CmdController implements InputController{
      * on the classpath and maps them to their action name.
      * @param plug 
      */
+    @Override
     public void plug(Context plug) {
-        List<Command> loadedCmds = plug.getCommands();
-        Set<String> expectedCmds = new TreeSet<String>();
-        if(loadedCmds.size() > 0){
-            Map<String,Command> commands = new HashMap<String, Command>(loadedCmds.size());
-            
-            for(Command cmd : loadedCmds){
+        super.plug(plug);
+        List<Command> sysCommands = plug.getCommandsByNamespace("syscmd");
+        if(sysCommands.size() > 0){
+            commands = plug.mapCommands(sysCommands);
+            Set<String> cmdHints = new TreeSet<String>();
+            // plug each Command instance and collect input hints
+            for(Command cmd : sysCommands){
                 cmd.plug(plug);
-                Command.Descriptor desc = cmd.getDescriptor();
-                if(desc != null){
-                    String cmdName = desc.getName();
-                    pattern = configureInputPattern(plug);
-                    
-                    if(pattern.matcher(cmdName).matches()){
-                        commands.put(cmdName, cmd);
-                        expectedCmds.add(cmdName);
-                        collectCommandHints(expectedCmds, cmd);
-                    }
-                    
-                }else{
-                    plug.getIoConsole().writeOutput(
-                        String.format("%nCommand [%] does not have a Command.Descriptor defined."
-                            + "It will not be mapped.%nn", cmd.getClass().getCanonicalName())
-                    );
-                }
+                cmdHints.addAll(collectInputHints(cmd));
             }
+
+            // save expected command input hints
+            setExpectedInputs(cmdHints.toArray(new String[0]));
             
-            // save command map in Context;
-            plug.putValue(Context.KEY_COMMAND_MAP, commands);
-            expectedInputs = expectedCmds.toArray(new String[0]);
         }else{
-            plug.getIoConsole().writeOutput(String.format("%nNo commands were mapped because none were found.%nn"));
+            plug.getIoConsole().writeOutput(
+                String.format("%nNo commands were found for input controller"
+                    + " [%s].%nn", this.getClass().getName()));
         }
     }
 
-    public Pattern respondsTo() {
-        return pattern;
-    }
-
-
-    public String[] getExpectedInputs() {
-        return expectedInputs;
-    }
-    
-    /**
-     * Collects input hints from the provided command.
-     * @param collection
-     * @param cmd 
-     */
-    private void collectCommandHints(final Set<String> collection, final Command cmd){
-        Map<String,String> args = (cmd.getDescriptor() != null ) ? cmd.getDescriptor().getArguments() : null;
-        
-        if(args != null){
-            String cmdName = cmd.getDescriptor().getName();
-            for(String hint : args.keySet()){
-                // hints sometimes are provided as "option1, option2, etc"
-                String[] hintSet = hint.split("\\s*,\\s*");
-                for(String hintVal : hintSet){
-                    collection.add(String.format("%s %s", cmdName, hintVal));
-                }
-            }
-        }
-    }
-    
-    /**
-     * Configures the respondsTo() input pattern from the config file.
-     * If the file does not contain a pattern, it defaults to an interanl pattern.
-     * @param ctx
-     * @return Pattern configured pattern.
-     */
-    private Pattern configureInputPattern(Context ctx){
-        String ctrlClassName = this.getClass().getName();
-        Configurator config = ctx.getConfigurator();
-        
-        Map<String,Map<String,? extends Object>> ctrlsMap = (Map<String,Map<String,? extends Object>>) config.getControllersMap();
-        
-        if(ctrlsMap != null){
-            Map<String, String> map = (Map<String, String>) ctrlsMap.get(ctrlClassName);
-            String inputPattern = map.get("inputPattern");
-            return (inputPattern != null) ? Pattern.compile(inputPattern) : null;
-        }
-        
-        return Pattern.compile("\\s*(\\w)+\\b.*");
-    }
-    
 }

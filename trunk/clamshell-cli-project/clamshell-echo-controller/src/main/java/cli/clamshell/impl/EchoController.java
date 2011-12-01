@@ -21,8 +21,8 @@ package cli.clamshell.impl;
 
 import cli.clamshell.api.Configurator;
 import cli.clamshell.api.Context;
-import cli.clamshell.api.InputController;
 import cli.clamshell.api.IOConsole;
+import cli.clamshell.commons.AnInputController;
 import java.util.regex.Pattern;
 
 /**
@@ -32,10 +32,7 @@ import java.util.regex.Pattern;
  * 
  * @author vladimir.vivien
  */
-public class EchoController implements InputController{
-    private static final String PATTERN_STR = ".+";
-    private Pattern pattern;
-    
+public class EchoController extends AnInputController{
     public boolean handle(Context ctx) {
         boolean handled = false;
         IOConsole console = ctx.getIoConsole();
@@ -48,16 +45,7 @@ public class EchoController implements InputController{
     }
 
     public void plug(Context plug) {
-        pattern = Pattern.compile(PATTERN_STR);
-    }
-
-    public Pattern respondsTo() {
-        return pattern;
-    }
-
-    @Override
-    public String[] getExpectedInputs() {
-        return null;
+        configureController(plug);
     }
     
 }

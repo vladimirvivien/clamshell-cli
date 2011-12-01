@@ -36,10 +36,13 @@ import java.util.Map;
  * @author vladimir.vivien
  */
 public class HelpCmd implements Command{
+    private static final String NAMESPACE = "syscmd";
     private static final String CMD_NAME = "help";
     private HelpCmdDescriptor descriptor = new HelpCmdDescriptor();
     
     private class HelpCmdDescriptor implements Command.Descriptor {
+        @Override public String getNamespace() {return NAMESPACE;}
+        
         @Override
         public String getName() {
             return CMD_NAME;

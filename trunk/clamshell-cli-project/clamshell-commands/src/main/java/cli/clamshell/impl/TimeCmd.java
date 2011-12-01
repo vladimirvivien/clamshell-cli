@@ -31,6 +31,7 @@ import java.util.Map;
  * @author vladimir.vivien
  */
 public class TimeCmd implements Command {
+    private static final String NAMESPACE = "syscmd";
     private static final String ACTION_NAME = "time";
 
     @Override
@@ -48,6 +49,8 @@ public class TimeCmd implements Command {
     @Override
     public Command.Descriptor getDescriptor(){
         return new Command.Descriptor() {
+            @Override public String getNamespace() {return NAMESPACE;}
+            
             @Override
             public String getName() {
                 return ACTION_NAME;

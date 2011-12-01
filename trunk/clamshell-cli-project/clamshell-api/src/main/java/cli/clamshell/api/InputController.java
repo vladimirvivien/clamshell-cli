@@ -55,4 +55,11 @@ public interface InputController extends Plugin{
      * @return Array of String representing expected inputs.
      */
     public String[] getExpectedInputs();
+    
+    /**
+     * A flag that indicates if the controller is enabled and should participate
+     * in input control.
+     * @return 
+     */
+    public Boolean isEnabled();
 }

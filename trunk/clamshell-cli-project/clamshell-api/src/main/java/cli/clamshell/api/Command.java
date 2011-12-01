@@ -54,6 +54,14 @@ public interface Command extends Plugin {
      */
     public static interface Descriptor {
         /**
+         * The purpose of the namespace is to provide an identifier to group
+         * commands without relying on class name or other convoluted approaches
+         * to group commands.
+         * @return the command's namespace
+         */
+        public String getNamespace();
+        
+        /**
          * Implementation of this method should return a simple string (with no spaces)
          * that identifies the action mapped to this command.
          * @return the name of the action mapped to this command.
