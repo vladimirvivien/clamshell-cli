@@ -20,10 +20,7 @@
 package cli.clamshell.commons;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.util.Properties;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import cli.clamshell.api.Configurator;
 import com.google.gson.Gson;

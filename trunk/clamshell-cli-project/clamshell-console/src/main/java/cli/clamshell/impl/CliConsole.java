@@ -30,6 +30,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -175,12 +177,14 @@ public class CliConsole implements IOConsole{
      * Collection expected input values to build suggestion lists.
      */
     private void aggregateExpectedInputs(){
+        List<String> inputs = new ArrayList<String>();
         for(InputController ctrl : controllers){
             String[] expectedInputs = ctrl.getExpectedInputs();
             if(expectedInputs != null){
-                console.addCompletor(new SimpleCompletor(expectedInputs));
+                Collections.addAll(inputs, expectedInputs);
             }
         }
+        console.addCompletor(new SimpleCompletor(inputs.toArray(new String[0])));
     }
 
 }

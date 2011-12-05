@@ -19,6 +19,8 @@ import cli.clamshell.api.Command;
 import cli.clamshell.api.Configurator;
 import cli.clamshell.api.Context;
 import cli.clamshell.api.InputController;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -33,7 +35,7 @@ import java.util.regex.Pattern;
  */
 public abstract class AnInputController implements InputController{
     private Pattern pattern;
-    private String[] expectedInputs;
+    private List<String> expectedInputs;
     private Boolean enabled;
     
     @Override
@@ -54,10 +56,13 @@ public abstract class AnInputController implements InputController{
 
     @Override
     public String[] getExpectedInputs() {
-        return expectedInputs;
+        return (expectedInputs != null) ?
+                expectedInputs.toArray(new String[0]) :
+                null;
     }
     protected void setExpectedInputs(String[] inputs){
-        expectedInputs = inputs;
+        if(inputs != null)
+            Collections.addAll(expectedInputs, inputs);
     }
     
     /**
@@ -80,7 +85,7 @@ public abstract class AnInputController implements InputController{
             String inputPattern = (String) map.get("inputPattern");
             pattern = (inputPattern != null) ? Pattern.compile(inputPattern) : null;
             
-            expectedInputs = (String[])map.get("expectedInputs");
+            expectedInputs = (List<String>) map.get("expectedInputs");
             
             String flag = (String)map.get("enabled");
             enabled = Boolean.valueOf((flag != null) ? flag : "false");

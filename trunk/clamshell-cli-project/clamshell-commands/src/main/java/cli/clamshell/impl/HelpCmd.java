@@ -20,7 +20,6 @@
 package cli.clamshell.impl;
 
 import cli.clamshell.api.Command;
-import cli.clamshell.api.Configurator;
 import cli.clamshell.api.Context;
 import cli.clamshell.api.IOConsole;
 import java.util.Collections;
@@ -98,7 +97,7 @@ public class HelpCmd implements Command{
     }
     
     private void printCommandHelp(Context ctx, String cmdName){
-        Map<String, Command> commands = (Map<String,Command>) ctx.getValue(Context.KEY_COMMAND_MAP);
+        Map<String, Command> commands = ctx.mapCommands(ctx.getCommands());
         if(commands != null){
             Command cmd = commands.get(cmdName.trim());
             if(cmd != null){

@@ -16,19 +16,31 @@
 package cli.clamshell.jmx;
 
 import cli.clamshell.api.Command;
+import cli.clamshell.api.Configurator;
 import cli.clamshell.api.Context;
+import cli.clamshell.api.IOConsole;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import sun.jvmstat.monitor.HostIdentifier;
+import sun.jvmstat.monitor.MonitoredHost;
+import sun.jvmstat.monitor.MonitoredVm;
+import sun.jvmstat.monitor.MonitoredVmUtil;
+import sun.jvmstat.monitor.VmIdentifier;
 
 /**
  *
  * @author vvivien
  */
 public class PsCommand implements Command{
+    public static final String KEY_ARGS_HOST = "host";
+    public static final String KEY_ARGS_ARGS = "args";
+    
     private static final String NAMESPACE = "jmx";
     private static final String CMD_NAME  = "ps";
     private Command.Descriptor descriptor;
-    
+    private HostIdentifier hostIdentifier;
+            
     public Descriptor getDescriptor() {
         return (descriptor != null) ? 
             descriptor : (
@@ -47,14 +59,29 @@ public class PsCommand implements Command{
                 }
 
                 public String getUsage() {
-                    return "ps [options]%n";
+                    StringBuilder result = new StringBuilder();
+                    result
+                        .append(Configurator.VALUE_LINE_SEP)
+                        .append("ps [options]").append(Configurator.VALUE_LINE_SEP);
+
+                    for(Map.Entry<String,String> entry : getArguments().entrySet()){
+                        result.append(
+                            String.format("%n%1$15s %2$2s %3$s", 
+                                entry.getKey(), 
+                                " ", 
+                                entry.getValue()
+                            )
+                        );
+                    }
+
+                    return result.toString();
                 }
 
                 Map<String,String> args;
                 public Map<String, String> getArguments() {
                     if(args != null) return args;
                     args = new HashMap<String,String>();
-                    args.put("host:<hostUrl>", "Specifies a remote host url.");
+                    args.put("host:<hostUrl>", "Specifies a remote host url. Default is localhost.");
                     args.put("args:v", "Arguments for verbose output");
                     return args;
                 }
@@ -63,12 +90,47 @@ public class PsCommand implements Command{
     }
 
     public Object execute(Context ctx) {
-        System.out.println ("Cmd Received!");
-        return  null;
+        Map<String,Object> argsMap = (Map<String,Object>) ctx.getValue(Context.KEY_COMMAND_LINE_ARGS);
+        IOConsole c = ctx.getIoConsole();
+        if(argsMap != null){
+            hostIdentifier = getHostIdentifier((String)argsMap.get(KEY_ARGS_HOST));
+        }else{
+            hostIdentifier = getHostIdentifier("localhost");
+        }
+        
+        c.writeOutput(String.format("%nJVM Processes"));
+        c.writeOutput(String.format("%n-------------"));
+        c.writeOutput(String.format("%nHost - %s", hostIdentifier.getHost()));
+        
+        try {
+            MonitoredHost monitoredHost = MonitoredHost.getMonitoredHost(hostIdentifier);
+            Set<Integer> jvmIds = monitoredHost.activeVms();
+            for(Integer jvmId : jvmIds){
+                String vmUri = "//" + jvmId + "?mode=r";
+                VmIdentifier vmId = new VmIdentifier(vmUri);
+                MonitoredVm monitoredVm = monitoredHost.getMonitoredVm(vmId,0);
+                c.writeOutput(String.format("%n%d %s",jvmId, MonitoredVmUtil.commandLine(monitoredVm)));
+            }
+        } catch (Exception ex) {
+            c.writeOutput(String.format("%ERROR: %s%n%n", ex.getMessage()));
+            return null;
+        }
+        
+        c.writeOutput(String.format("%n%n"));
+        
+        return null;
     }
 
     public void plug(Context plug) {
-        //throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    protected HostIdentifier getHostIdentifier(String hostName){
+        try {
+            hostIdentifier = new HostIdentifier((hostName != null) ? hostName : "localhost");
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+        return hostIdentifier;
     }
     
 }
