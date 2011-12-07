@@ -34,7 +34,7 @@ import sun.jvmstat.monitor.VmIdentifier;
  */
 public class PsCommand implements Command{
     public static final String KEY_ARGS_HOST = "host";
-    public static final String KEY_ARGS_ARGS = "args";
+    public static final String KEY_ARGS_OPTIONS = "o";
     
     private static final String NAMESPACE = "jmx";
     private static final String CMD_NAME  = "ps";
@@ -82,7 +82,8 @@ public class PsCommand implements Command{
                     if(args != null) return args;
                     args = new HashMap<String,String>();
                     args.put("host:<hostUrl>", "Specifies a remote host url. Default is localhost.");
-                    args.put("args:v", "Arguments for verbose output");
+                    args.put("o:v", "Option for verbose output");
+                    
                     return args;
                 }
             }
@@ -92,27 +93,20 @@ public class PsCommand implements Command{
     public Object execute(Context ctx) {
         Map<String,Object> argsMap = (Map<String,Object>) ctx.getValue(Context.KEY_COMMAND_LINE_ARGS);
         IOConsole c = ctx.getIoConsole();
-        if(argsMap != null){
-            hostIdentifier = getHostIdentifier((String)argsMap.get(KEY_ARGS_HOST));
-        }else{
-            hostIdentifier = getHostIdentifier("localhost");
-        }
-        
-        c.writeOutput(String.format("%nJVM Processes"));
-        c.writeOutput(String.format("%n-------------"));
-        c.writeOutput(String.format("%nHost - %s", hostIdentifier.getHost()));
+        String options = getOptions(argsMap);
+        String hostName = getHostName(argsMap);
+        c.writeOutput(String.format("%nConnecting to %s ...", hostName));
         
         try {
+            hostIdentifier = getHostIdentifier(hostName);
             MonitoredHost monitoredHost = MonitoredHost.getMonitoredHost(hostIdentifier);
             Set<Integer> jvmIds = monitoredHost.activeVms();
             for(Integer jvmId : jvmIds){
-                String vmUri = "//" + jvmId + "?mode=r";
-                VmIdentifier vmId = new VmIdentifier(vmUri);
-                MonitoredVm monitoredVm = monitoredHost.getMonitoredVm(vmId,0);
-                c.writeOutput(String.format("%n%d %s",jvmId, MonitoredVmUtil.commandLine(monitoredVm)));
+                MonitoredVm monitoredVm = getMonitoredVm(monitoredHost, jvmId);
+                c.writeOutput(String.format("%n%d\t%s",jvmId, getVmInfo(monitoredVm, options)));
             }
         } catch (Exception ex) {
-            c.writeOutput(String.format("%ERROR: %s%n%n", ex.getMessage()));
+            c.writeOutput(String.format("%nERROR: %s%n%n", ex.getMessage()));
             return null;
         }
         
@@ -124,6 +118,17 @@ public class PsCommand implements Command{
     public void plug(Context plug) {
     }
     
+    
+    protected String getHostName(Map<String,Object> argsMap){
+        return (argsMap != null && argsMap.get(KEY_ARGS_HOST) != null) ?
+            (String)argsMap.get(KEY_ARGS_HOST) : "localhost";
+    }
+    
+    protected String getOptions(Map<String,Object> argsMap){
+        return (argsMap != null && argsMap.get(KEY_ARGS_OPTIONS) != null) ?
+            (String)argsMap.get(KEY_ARGS_OPTIONS) : "q";
+    }
+    
     protected HostIdentifier getHostIdentifier(String hostName){
         try {
             hostIdentifier = new HostIdentifier((hostName != null) ? hostName : "localhost");
@@ -131,6 +136,25 @@ public class PsCommand implements Command{
             throw new RuntimeException(ex);
         }
         return hostIdentifier;
+    }
+    
+    protected MonitoredVm getMonitoredVm(MonitoredHost mHost, Integer jvmId) throws Exception{
+        String vmUri = "//" + jvmId + "?mode=r";
+        VmIdentifier vmId = new VmIdentifier(vmUri);
+        return mHost.getMonitoredVm(vmId,0);
+    }
+    
+    private String getVmInfo(MonitoredVm vm, String options) throws Exception {
+        String vmInfo = MonitoredVmUtil.mainClass(vm, true);;
+        if (options != null && options.toLowerCase().equals("v")) {
+            vmInfo = String.format(
+                "%s %s",
+                MonitoredVmUtil.mainClass(vm, true),
+                MonitoredVmUtil.commandLine(vm)
+            );
+        }
+
+        return vmInfo;
     }
     
 }
