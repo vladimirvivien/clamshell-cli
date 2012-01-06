@@ -26,15 +26,19 @@ import sun.jvmstat.monitor.HostIdentifier;
 import sun.jvmstat.monitor.MonitoredHost;
 import sun.jvmstat.monitor.MonitoredVm;
 import sun.jvmstat.monitor.MonitoredVmUtil;
-import sun.jvmstat.monitor.VmIdentifier;
+import sun.management.ConnectorAddressLink;
 
 /**
- *
- * @author vvivien
+ * This is an implementation of the Command interface to handle JMX command-line
+ * "ps".  This command displays Java VM process information similar to the JDK
+ * command-line tool Jps.  The command format:
+ * <code>ps [host:"hostUri" o:q|v]</code>
+ * Parameter "host" specifies the address of the JVM. Parameter "o" specifies 
+ * additional options q = quiet (default), v = verbose.
+ * @author vladimir.vivien
  */
 public class PsCommand implements Command{
-    public static final String KEY_ARGS_HOST = "host";
-    public static final String KEY_ARGS_OPTIONS = "o";
+    private static final String KEY_ARGS_OPTIONS = "o";
     
     private static final String NAMESPACE = "jmx";
     private static final String CMD_NAME  = "ps";
@@ -81,9 +85,9 @@ public class PsCommand implements Command{
                 public Map<String, String> getArguments() {
                     if(args != null) return args;
                     args = new HashMap<String,String>();
-                    args.put("host:<hostUrl>", "Specifies a remote host url. Default is localhost.");
+                    args.put("host:<hostUrl>", "Host url, default is localhost.");
                     args.put("o:v", "Option for verbose output");
-                    
+                    args.put("o:q", "Option for quitter output (default).");
                     return args;
                 }
             }
@@ -94,16 +98,16 @@ public class PsCommand implements Command{
         Map<String,Object> argsMap = (Map<String,Object>) ctx.getValue(Context.KEY_COMMAND_LINE_ARGS);
         IOConsole c = ctx.getIoConsole();
         String options = getOptions(argsMap);
-        String hostName = getHostName(argsMap);
-        c.writeOutput(String.format("%nConnecting to %s ...", hostName));
-        
+        String hostAddr = Management.getHostFromArgs(argsMap);
+        c.writeOutput(String.format("%nConnecting to %s ...", hostAddr));
+
         try {
-            hostIdentifier = getHostIdentifier(hostName);
-            MonitoredHost monitoredHost = MonitoredHost.getMonitoredHost(hostIdentifier);
-            Set<Integer> jvmIds = monitoredHost.activeVms();
-            for(Integer jvmId : jvmIds){
-                MonitoredVm monitoredVm = getMonitoredVm(monitoredHost, jvmId);
-                c.writeOutput(String.format("%n%d\t%s",jvmId, getVmInfo(monitoredVm, options)));
+            Map<Integer, Management.VmInfo> vMs = Management.mapVmInfo(hostAddr);
+            ctx.putValue(Management.KEY_VMINFO_MAP, vMs);
+            for(Map.Entry<Integer,Management.VmInfo> vmInfo : vMs.entrySet()){
+                Integer id = vmInfo.getKey();
+                MonitoredVm vm = vmInfo.getValue().getMonitoredVm();
+                c.writeOutput(String.format("%n%d\t%s",id, formatVmInfo(vm, options)));
             }
         } catch (Exception ex) {
             c.writeOutput(String.format("%nERROR: %s%n%n", ex.getMessage()));
@@ -118,33 +122,12 @@ public class PsCommand implements Command{
     public void plug(Context plug) {
     }
     
-    
-    protected String getHostName(Map<String,Object> argsMap){
-        return (argsMap != null && argsMap.get(KEY_ARGS_HOST) != null) ?
-            (String)argsMap.get(KEY_ARGS_HOST) : "localhost";
-    }
-    
     protected String getOptions(Map<String,Object> argsMap){
         return (argsMap != null && argsMap.get(KEY_ARGS_OPTIONS) != null) ?
             (String)argsMap.get(KEY_ARGS_OPTIONS) : "q";
     }
-    
-    protected HostIdentifier getHostIdentifier(String hostName){
-        try {
-            hostIdentifier = new HostIdentifier((hostName != null) ? hostName : "localhost");
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
-        return hostIdentifier;
-    }
-    
-    protected MonitoredVm getMonitoredVm(MonitoredHost mHost, Integer jvmId) throws Exception{
-        String vmUri = "//" + jvmId + "?mode=r";
-        VmIdentifier vmId = new VmIdentifier(vmUri);
-        return mHost.getMonitoredVm(vmId,0);
-    }
-    
-    private String getVmInfo(MonitoredVm vm, String options) throws Exception {
+        
+    private String formatVmInfo(MonitoredVm vm, String options) throws Exception {
         String vmInfo = MonitoredVmUtil.mainClass(vm, true);;
         if (options != null && options.toLowerCase().equals("v")) {
             vmInfo = String.format(

@@ -19,14 +19,10 @@
  */
 package cli.clamshell.commons.test;
 
-import cli.clamshell.api.Configurator;
 import cli.clamshell.api.Plugin;
 import cli.clamshell.commons.Clamshell;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

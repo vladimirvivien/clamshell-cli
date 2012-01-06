@@ -1,0 +1,181 @@
+/*
+ * Copyright 2011 ClamShell-Cli.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package cli.clamshell.jmx;
+
+import cli.clamshell.api.Context;
+import java.net.MalformedURLException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
+import javax.management.remote.JMXServiceURL;
+import sun.jvmstat.monitor.HostIdentifier;
+import sun.jvmstat.monitor.MonitoredHost;
+import sun.jvmstat.monitor.MonitoredVm;
+import sun.jvmstat.monitor.MonitoredVmUtil;
+import sun.jvmstat.monitor.VmIdentifier;
+import sun.management.ConnectorAddressLink;
+
+/**
+ * This is a helper class to aggregate common utility tools for different
+ * management tools such as vmstat, attach api, and JMX api.
+ * @author vladimir.vivien
+ */
+public final class Management {
+    public static final String VALUE_LOCALHOST = "localhost";
+    public static final String KEY_ARGS_HOST = "host";
+    public static final String KEY_VMINFO_MAP = "key.vminfo.map";
+    public static final String KEY_JMX_MBEANSERVER = "key.jmx.mbServer";
+    public static final String KEY_JMX_CONNECTOR = "key.jmx.connector";
+    public static final String KEY_JMX_URL = "key.jmx.url";
+    
+    private Management(){}
+
+    /**
+     * Returns the host address from the passed argument map.
+     * @param argsMap a Map<String,String> for the argument values
+     * @return the host address if in argument or "localhost" if none.
+     */
+    public static String getHostFromArgs(Map<String,Object> argsMap){
+        return (argsMap != null && argsMap.get(KEY_ARGS_HOST) != null) ?
+            (String)argsMap.get(KEY_ARGS_HOST) : "localhost";
+    }
+    
+    /**
+     * Returns HostIdentifier from the string form of hostName.
+     * @param hostName
+     * @return HostIdentifier
+     */
+    public static HostIdentifier getHostIdentifier(String hostName){
+        HostIdentifier hostIdentifier = null;
+        try {
+            hostIdentifier = new HostIdentifier((hostName != null) ? hostName : "localhost");
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+        return hostIdentifier;
+    }
+    
+    /**
+     * Returns a MonitoredVm instance from the provided MonitoredHost and the
+     * jvm process id.
+     * @param mHost MonitoredHost instance
+     * @param jvmId jvm process id.
+     * @return MonitoredVm
+     * @throws Exception if there is a problem.
+     */
+    public static MonitoredVm getMonitoredVm(MonitoredHost mHost, Integer jvmId) throws Exception{
+        String vmUri = "//" + jvmId + "?mode=r";
+        VmIdentifier vmId = new VmIdentifier(vmUri);
+        return mHost.getMonitoredVm(vmId,0);
+    }
+    
+    /**
+     * Creates a Map<Integer,Management.LocalJVMInfo> map (VmMap) with information from
+     * specified host.
+     * as a key.
+     * @param String host address of VMs to map
+     * @throws Exception if something bad happens.
+     */
+    public static Map<Integer, Management.VmInfo> mapVmInfo(String hostAddr) throws Exception{
+        Map<Integer, Management.VmInfo> map = new LinkedHashMap<Integer,Management.VmInfo>();
+        HostIdentifier hostIdentifier = Management.getHostIdentifier(hostAddr);
+        MonitoredHost monitoredHost = MonitoredHost.getMonitoredHost(hostIdentifier);
+        Set<Integer> jvmIds = monitoredHost.activeVms();
+        // harvest vm info from host
+        for (Integer jvmId : jvmIds) {
+            MonitoredVm monitoredVm = Management.getMonitoredVm(monitoredHost, jvmId);
+            // save vm info.
+            map.put(
+                jvmId, new Management.VmInfo(
+                    monitoredVm,
+                    ConnectorAddressLink.importFrom(jvmId),
+                    MonitoredVmUtil.isAttachable(monitoredVm)
+                 )
+            );
+            monitoredVm.detach();
+        }
+        
+        return map;
+    }
+
+    private static Pattern defaultAddrPattern = Pattern.compile("\\w+");
+    private static Pattern simpleAddrPattern = Pattern.compile("\\w+:[0-9]+"); 
+    /**
+     * Returns a fully constructed JMXServiceURL based on passed address.
+     * It accepts default form "hostname", "hostname:port", or the verobse form
+     * "service:jmx:rmi://host:port/jmxrmi".  If the param is not the first two
+     * it assumes the verbose form.
+     * @param hostUrl - a String form of the host address.
+     * @return  JMXServiceURL.
+     */
+    public static JMXServiceURL getJmxUrlFrom(String hostUrl) throws Exception{
+        if(hostUrl == null || hostUrl.isEmpty())
+            return null;
+        String urlString = hostUrl;
+        
+        // if scheme,protocol, port omitted, assume "localhost"
+        if(defaultAddrPattern.matcher(hostUrl).matches()){
+            urlString = "service:jmx:rmi:///jndi/rmi://" +
+                hostUrl + ":1099/jmxrmi";             
+        }
+        
+        // if host:port provided, decorate with scheme,protocol, and path
+        if(simpleAddrPattern.matcher(hostUrl).matches()){
+            urlString = "service:jmx:rmi:///jndi/rmi://" +
+                hostUrl + "/jmxrmi";            
+        }
+        
+        // else use url as provided
+        
+        JMXServiceURL svcUrl = null;
+        try {
+            svcUrl = new JMXServiceURL(urlString);
+        } catch (MalformedURLException ex) {
+            throw new Exception(ex);
+        }
+        return svcUrl;
+
+    }
+    
+    /**
+     * A domain class to cache information for discovered local JVM instances.
+     * 
+     */
+    public static class VmInfo{
+        private MonitoredVm monitoredVm;
+        private String  address;
+        private boolean attachable;
+        
+        public VmInfo(MonitoredVm mVm, String addr, boolean attachable){
+            this.monitoredVm = mVm;
+            this.address = addr;
+            this.attachable = attachable;
+        }
+        
+        public String getAddress() {
+            return address;
+        }
+
+        public boolean isAttachable() {
+            return attachable;
+        }
+
+        public MonitoredVm getMonitoredVm() {
+            return monitoredVm;
+        }     
+    }
+}

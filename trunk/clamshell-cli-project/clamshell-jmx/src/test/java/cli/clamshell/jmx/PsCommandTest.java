@@ -18,17 +18,16 @@ package cli.clamshell.jmx;
 import cli.clamshell.api.Configurator;
 import cli.clamshell.api.Context;
 import cli.clamshell.commons.ShellContext;
+import cli.clamshell.test.MockContext;
 import com.google.gson.Gson;
+import java.util.HashMap;
 import java.util.Map;
-import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import sun.jvmstat.monitor.MonitoredHost;
 
 /**
  *
- * @author vladimir
+ * @author vladimir.vivien
  */
 public class PsCommandTest {
     Context ctx;
@@ -38,54 +37,34 @@ public class PsCommandTest {
     static String ARGS_PORT = "1099";
     
     public PsCommandTest() {
-        ctx = ShellContext.createInstance();
+        ctx = MockContext.createInstance();
         cmd = new PsCommand();
-        gson = new Gson();
     }
 
     @BeforeClass
     public static void setUpClass() throws Exception {
         System.setProperty(Configurator.KEY_CONFIG_FILE, "../mock-env/conf/cli.config");
     }
+    
+    
+    @Test
+    public void testCmdExecute(){
+        cmd.execute(ctx);
+        Map<Integer,Management.VmInfo> localVms = (Map<Integer,Management.VmInfo>) ctx.getValue(Management.KEY_VMINFO_MAP);
+        assert localVms != null;
+        assert localVms.size() > 0;
+    }
 
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
-    
-    @Before
-    public void setUp() {
-    }
- 
     @Test
-    public void testGetHostIdentifierWithDefaultHost() throws Exception{
-        assert cmd.getHostIdentifier(null) != null;
-        assert cmd.getHostIdentifier(null).getHost().equals("localhost");
+    public void testGetOptions() {
+        String opt = cmd.getOptions(null);
+        assert opt.equals("q");
+        
+        Map<String,Object> args = new HashMap<String,Object>();
+        args.put("o", "v");
+        
+        opt = cmd.getOptions(args);
+        assert opt.equals("v");
         
     }
-    
-    @Test
-    public void testGetHostIdentifierWithDefaultPort() throws Exception{
-        Map<String,Object> argsMap = gson.fromJson(
-            String.format("{'host':'%s'}", ARGS_HOST), Map.class
-        );
-        String hostName = (String) argsMap.get("host");
-        assert hostName != null;
-        assert cmd.getHostIdentifier(hostName) != null;
-        assert cmd.getHostIdentifier(hostName).getHost().equals("localhost");
-        
-    }
-    
-    @Test
-    public void testGetMonitoredHostWithPort() throws Exception{
-        Map<String,Object> argsMap = gson.fromJson(
-            String.format("{'host':'%s:%s'}", ARGS_HOST, ARGS_PORT), Map.class
-        );
-        String hostName = (String) argsMap.get("host");
-        assert hostName != null;
-        assert cmd.getHostIdentifier(hostName) != null;
-        assert cmd.getHostIdentifier(hostName).getHost().equals("localhost");
-        assert cmd.getHostIdentifier(hostName).getPort() == 1099;
-    }    
-    
-    
 }

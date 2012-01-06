@@ -24,10 +24,8 @@
 package cli.clamshell.impl.test;
 
 import cli.clamshell.api.Configurator;
-import cli.clamshell.api.Context;
 import cli.clamshell.commons.ShellContext;
 import cli.clamshell.impl.CliConsole;
-import java.io.ByteArrayOutputStream;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
