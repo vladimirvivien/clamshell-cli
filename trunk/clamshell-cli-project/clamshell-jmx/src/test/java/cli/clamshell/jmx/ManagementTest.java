@@ -107,9 +107,18 @@ public class ManagementTest {
     }
     
     @Test
-    public void testMapLocalJvmInfoFrom() throws Exception{
+    public void testMapVmInfo() throws Exception{
         Map<Integer, Management.VmInfo> map = Management.mapVmInfo("localhost");
         assert map != null;
         assert map.size() > 0;
+    }
+    
+    @Test
+    public void testGetMonitoredVmFromId() throws Exception{
+        Map<Integer, Management.VmInfo> map = Management.mapVmInfo("localhost");
+        Integer vmId = map.keySet().iterator().next();
+        MonitoredVm vm = Management.getMonitoredVmFromId(vmId);
+        assert vm != null;
+        assert vm.getVmIdentifier().getLocalVmId() == vmId.intValue();
     }
 }

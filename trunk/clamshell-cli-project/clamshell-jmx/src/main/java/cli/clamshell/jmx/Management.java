@@ -15,11 +15,13 @@
  */
 package cli.clamshell.jmx;
 
-import cli.clamshell.api.Context;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.management.remote.JMXServiceURL;
 import sun.jvmstat.monitor.HostIdentifier;
@@ -37,6 +39,7 @@ import sun.management.ConnectorAddressLink;
 public final class Management {
     public static final String VALUE_LOCALHOST = "localhost";
     public static final String KEY_ARGS_HOST = "host";
+    public static final String KEY_ARGS_PID = "pid";
     public static final String KEY_VMINFO_MAP = "key.vminfo.map";
     public static final String KEY_JMX_MBEANSERVER = "key.jmx.mbServer";
     public static final String KEY_JMX_CONNECTOR = "key.jmx.connector";
@@ -100,18 +103,26 @@ public final class Management {
             MonitoredVm monitoredVm = Management.getMonitoredVm(monitoredHost, jvmId);
             // save vm info.
             map.put(
-                jvmId, new Management.VmInfo(
-                    monitoredVm,
-                    ConnectorAddressLink.importFrom(jvmId),
-                    MonitoredVmUtil.isAttachable(monitoredVm)
-                 )
+                jvmId, new Management.VmInfo(monitoredVm)
             );
             monitoredVm.detach();
         }
         
         return map;
     }
-
+    
+    /**
+     * Returns a MonitoredVm instance based on the localVm process id
+     * @param id process id associated with vm
+     * @return MonitoredVm
+     * @throws Exception if something goes wrong
+     */
+    public static MonitoredVm getMonitoredVmFromId(int id) throws Exception{
+        HostIdentifier hostIdentifier = Management.getHostIdentifier(Management.VALUE_LOCALHOST);
+        MonitoredHost monitoredHost = MonitoredHost.getMonitoredHost(hostIdentifier);
+        return Management.getMonitoredVm(monitoredHost, id);
+    }
+    
     private static Pattern defaultAddrPattern = Pattern.compile("\\w+");
     private static Pattern simpleAddrPattern = Pattern.compile("\\w+:[0-9]+"); 
     /**
@@ -160,10 +171,18 @@ public final class Management {
         private String  address;
         private boolean attachable;
         
-        public VmInfo(MonitoredVm mVm, String addr, boolean attachable){
+        public VmInfo(MonitoredVm mVm){
+            assert mVm != null;
+            assert mVm.getVmIdentifier() != null;
+            
             this.monitoredVm = mVm;
-            this.address = addr;
-            this.attachable = attachable;
+            
+            try{
+                address = ConnectorAddressLink.importFrom(monitoredVm.getVmIdentifier().getLocalVmId());
+                attachable = MonitoredVmUtil.isAttachable(mVm);
+            }catch(Exception ex){
+                throw new RuntimeException(ex);
+            }
         }
         
         public String getAddress() {

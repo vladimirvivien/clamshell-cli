@@ -56,6 +56,7 @@ public final class Clamshell {
             for (Plugin e : pluginClasses) {
                 plugins.add(e);
             }
+            
             return plugins;
         }
         

@@ -19,12 +19,14 @@ import cli.clamshell.api.Command;
 import cli.clamshell.api.Context;
 import cli.clamshell.api.IOConsole;
 import cli.clamshell.jmx.Management.VmInfo;
+import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.Map;
 import javax.management.MBeanServerConnection;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
+import sun.jvmstat.monitor.MonitoredVm;
 
 /**
  * This Command interface implementation provides the JMX "connect" command-line.
@@ -87,8 +89,8 @@ public class ConnectCommand implements Command{
 
     public Object execute(Context ctx) {
         Map<String,Object> argsMap = (Map<String,Object>) ctx.getValue(Context.KEY_COMMAND_LINE_ARGS);
-        Map<Integer,VmInfo> localJvms = (Map<Integer,VmInfo>) ctx.getValue(Management.KEY_VMINFO_MAP);
-        IOConsole c = ctx.getIoConsole();
+        Map<Integer,VmInfo> localVms = (Map<Integer,VmInfo>) ctx.getValue(Management.KEY_VMINFO_MAP);
+        final IOConsole c = ctx.getIoConsole();
  
         MBeanServerConnection serverConnection = null;
         JMXConnector connector = null;
@@ -96,28 +98,50 @@ public class ConnectCommand implements Command{
         String hostAddr = Management.getHostFromArgs(argsMap);
         String uname = (String)argsMap.get(KEY_ARGS_UNAME);
         String pwd = (String)argsMap.get(KEY_ARGS_PWD);
-        Integer pid = (Integer)argsMap.get(KEY_ARGS_PID);
+        String pid = (String)argsMap.get(KEY_ARGS_PID);
         
         // extract JMX URL.
         JMXServiceURL jmxUrl = null;
         try{
             jmxUrl = Management.getJmxUrlFrom("localhost");
-            
+
+            if (pid != null) {
+                try{
+                    Integer procId = Integer.valueOf(pid);
+                    VmInfo info = getVmInfo(procId, localVms);
+                    if (info != null) {
+                        hostAddr = info.getAddress();
+                        jmxUrl = Management.getJmxUrlFrom(hostAddr);
+                    }
+                    
+                    // if vminfo not cached already, try to find and connect 
+                    else{
+                        MonitoredVm mvm = Management.getMonitoredVmFromId(procId);
+                        if(mvm != null){
+                            Management.VmInfo vmInfo = new Management.VmInfo(mvm);
+                            jmxUrl = Management.getJmxUrlFrom(vmInfo.getAddress());
+                            localVms.put(procId, vmInfo);
+                        }else{
+                            c.writeOutput(String.format("ERROR: Unable to find local VM "
+                                + " with pid value: [%s]", pid));            
+                            return null;                            
+                        }
+                    }
+                }catch(Exception ex){
+                    c.writeOutput(String.format("ERROR: Unable to determine "
+                        + "pid value: [%s]", pid));            
+                    return null;
+                }
+            }
             if (hostAddr != null){
                 jmxUrl = Management.getJmxUrlFrom(hostAddr);
             }
-            if(pid != null){
-                VmInfo info = getLocalJvmInfo(pid,localJvms);
-                if(info != null){
-                    hostAddr = info.getAddress();
-                    jmxUrl = Management.getJmxUrlFrom(hostAddr);
-                }
-            }
-            
+                        
             ctx.putValue(Management.KEY_JMX_URL, jmxUrl);
             
         }catch(Exception ex){
-            // TODO display output
+            c.writeOutput(String.format("ERROR: Unable to determine "
+                    + "connection URL: %s", ex.getMessage()));            
         }
         
         // add credentials info
@@ -130,13 +154,19 @@ public class ConnectCommand implements Command{
         
         // connect
         try{
-            connector = JMXConnectorFactory.connect(jmxUrl, env);
-            serverConnection = connector.getMBeanServerConnection();
+            connector = JMXConnectorFactory.connect(jmxUrl, env); 
+            
+            // if pid nor hostaddr provided, use platform/local mbean server
+            if(pid == null && hostAddr == null){
+                serverConnection = ManagementFactory.getPlatformMBeanServer();
+            }else{           
+                serverConnection = connector.getMBeanServerConnection();
+            }
             ctx.putValue(Management.KEY_JMX_CONNECTOR, connector);
             ctx.putValue(Management.KEY_JMX_MBEANSERVER, serverConnection);
-            
         }catch(Exception ex){
-            c.writeOutput(String.format("ERROR: unable to connect to MBeanServer: %s", ex.getMessage()));
+            c.writeOutput(String.format("ERROR: unable to connect to"
+                    + " MBeanServer: %s", ex.getMessage()));
         }
         
         
@@ -147,8 +177,8 @@ public class ConnectCommand implements Command{
         //throw new UnsupportedOperationException("Not supported yet.");
     }
     
-    protected VmInfo getLocalJvmInfo(Integer key, Map<Integer,VmInfo> jvmMap){
+    protected VmInfo getVmInfo(Integer key, Map<Integer,VmInfo> jvmMap){
         if(jvmMap == null) return null;
         return jvmMap.get(key);
-    }
+    }    
 }

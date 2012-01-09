@@ -16,6 +16,7 @@
 package cli.clamshell.jmx;
 
 import cli.clamshell.api.Context;
+import cli.clamshell.jmx.Management.VmInfo;
 import cli.clamshell.test.MockContext;
 import java.util.HashMap;
 import java.util.Map;
@@ -82,5 +83,29 @@ public class ConnectCommandTest {
        
         
         stopJmxAgent(agent);
+    }
+    
+    @Test
+    public void testExecuteWithPidArgs() throws Exception{
+        JmxAgent agent = startNewJmxAgent(1999);
+        
+        Map<Integer,VmInfo> vms = Management.mapVmInfo("localhost");
+        Integer vmId = vms.keySet().iterator().next();
+        argsMap.put(Management.KEY_ARGS_PID, vmId.toString());
+        
+        ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);
+        cmd.execute(ctx);
+        
+        JMXServiceURL url = (JMXServiceURL) ctx.getValue(Management.KEY_JMX_URL);
+        JMXConnector c = (JMXConnector) ctx.getValue(Management.KEY_JMX_CONNECTOR);
+        MBeanServerConnection cn = (MBeanServerConnection) ctx.getValue(Management.KEY_JMX_MBEANSERVER);
+
+        assert url != null;
+        assert c   != null;
+        assert cn  != null;
+       
+        
+        stopJmxAgent(agent);
+        
     }
 }
