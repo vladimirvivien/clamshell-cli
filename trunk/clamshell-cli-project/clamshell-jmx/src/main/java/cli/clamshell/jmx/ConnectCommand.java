@@ -18,7 +18,9 @@ package cli.clamshell.jmx;
 import cli.clamshell.api.Command;
 import cli.clamshell.api.Context;
 import cli.clamshell.api.IOConsole;
+import cli.clamshell.commons.ShellException;
 import cli.clamshell.jmx.Management.VmInfo;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.Map;
@@ -80,7 +82,7 @@ public class ConnectCommand implements Command{
                     if(args != null) return args;
                     args = new HashMap<String,String>();
                     args.put("host:<hostUrl>", "Host url, default is localhost.");
-                    args.put(CMD_NAME, CMD_NAME);   
+                    args.put("pid:<processId>", "Process ID for local vm.");   
                     return args;
                 }
             }
@@ -88,17 +90,40 @@ public class ConnectCommand implements Command{
     }
 
     public Object execute(Context ctx) {
+        invalidatePreviousConnection(ctx);
         Map<String,Object> argsMap = (Map<String,Object>) ctx.getValue(Context.KEY_COMMAND_LINE_ARGS);
         Map<Integer,VmInfo> localVms = (Map<Integer,VmInfo>) ctx.getValue(Management.KEY_VMINFO_MAP);
+        if(localVms == null){
+            mapVmInfoToContext(ctx);
+            localVms = (Map<Integer,VmInfo>) ctx.getValue(Management.KEY_VMINFO_MAP);
+        }
         final IOConsole c = ctx.getIoConsole();
  
         MBeanServerConnection serverConnection = null;
         JMXConnector connector = null;
         
         String hostAddr = Management.getHostFromArgs(argsMap);
-        String uname = (String)argsMap.get(KEY_ARGS_UNAME);
-        String pwd = (String)argsMap.get(KEY_ARGS_PWD);
-        String pid = (String)argsMap.get(KEY_ARGS_PID);
+        String uname = (argsMap != null && argsMap.get(KEY_ARGS_UNAME) != null) 
+            ? (String)argsMap.get(KEY_ARGS_UNAME) : null;
+        String pwd = (argsMap != null && argsMap.get(KEY_ARGS_PWD) != null) 
+            ? (String)argsMap.get(KEY_ARGS_PWD) : null;
+        
+        Integer pid = null;
+        if(argsMap != null && argsMap.get(KEY_ARGS_PID) != null){
+            try{
+                // normalization due to json behavior
+                Object val = argsMap.get(KEY_ARGS_PID);
+                if(val instanceof String){
+                    pid = Integer.valueOf((String)val);
+                }
+                if(val instanceof Double){
+                    pid = ((Double)val).intValue();
+                }
+            }catch(Exception ex){
+                throw new ShellException(String.format("Unable to determine "
+                    + "value for pid [%s]: %s", argsMap.get(KEY_ARGS_PID), ex.getMessage()));
+            }   
+        }
         
         // extract JMX URL.
         JMXServiceURL jmxUrl = null;
@@ -107,8 +132,7 @@ public class ConnectCommand implements Command{
 
             if (pid != null) {
                 try{
-                    Integer procId = Integer.valueOf(pid);
-                    VmInfo info = getVmInfo(procId, localVms);
+                    VmInfo info = getVmInfoFromMap(pid, localVms);
                     if (info != null) {
                         hostAddr = info.getAddress();
                         jmxUrl = Management.getJmxUrlFrom(hostAddr);
@@ -116,21 +140,18 @@ public class ConnectCommand implements Command{
                     
                     // if vminfo not cached already, try to find and connect 
                     else{
-                        MonitoredVm mvm = Management.getMonitoredVmFromId(procId);
+                        MonitoredVm mvm = Management.getMonitoredVmFromId(pid);
                         if(mvm != null){
                             Management.VmInfo vmInfo = new Management.VmInfo(mvm);
                             jmxUrl = Management.getJmxUrlFrom(vmInfo.getAddress());
-                            localVms.put(procId, vmInfo);
                         }else{
-                            c.writeOutput(String.format("ERROR: Unable to find local VM "
-                                + " with pid value: [%s]", pid));            
-                            return null;                            
+                            throw new ShellException(String.format("Unable to find local VM "
+                                + " with pid value: [%s]", pid));                                      
                         }
                     }
                 }catch(Exception ex){
-                    c.writeOutput(String.format("ERROR: Unable to determine "
-                        + "pid value: [%s]", pid));            
-                    return null;
+                    throw new ShellException (String.format("Unable to understand "
+                        + "pid value: [%s]%", pid));            
                 }
             }
             if (hostAddr != null){
@@ -140,8 +161,8 @@ public class ConnectCommand implements Command{
             ctx.putValue(Management.KEY_JMX_URL, jmxUrl);
             
         }catch(Exception ex){
-            c.writeOutput(String.format("ERROR: Unable to determine "
-                    + "connection URL: %s", ex.getMessage()));            
+            throw new ShellException(String.format("%Connection URL "
+                + "seems to be invalid: %s", ex.getMessage()));            
         }
         
         // add credentials info
@@ -151,25 +172,26 @@ public class ConnectCommand implements Command{
             env.put(JMXConnector.CREDENTIALS, new String[]{uname, pwd});
         }
         
-        
         // connect
         try{
-            connector = JMXConnectorFactory.connect(jmxUrl, env); 
-            
             // if pid nor hostaddr provided, use platform/local mbean server
-            if(pid == null && hostAddr == null){
+            if(pid == null && hostAddr.equals(Management.VALUE_LOCALHOST)){
+                connector = null;
                 serverConnection = ManagementFactory.getPlatformMBeanServer();
-            }else{           
+                c.writeOutput(String.format("%nConnected to internal server."));
+            }else{
+                connector = JMXConnectorFactory.connect(jmxUrl, env); 
                 serverConnection = connector.getMBeanServerConnection();
+                c.writeOutput(String.format("%nConnected to server (%s).", connector.getConnectionId()));
             }
+            c.writeOutput(String.format("%n%d MBean(s) registered with server.%n%n", serverConnection.getMBeanCount()));
             ctx.putValue(Management.KEY_JMX_CONNECTOR, connector);
             ctx.putValue(Management.KEY_JMX_MBEANSERVER, serverConnection);
+
         }catch(Exception ex){
-            c.writeOutput(String.format("ERROR: unable to connect to"
+            throw new ShellException(String.format("Unable to connect to"
                     + " MBeanServer: %s", ex.getMessage()));
         }
-        
-        
         return null;
     }
 
@@ -177,8 +199,35 @@ public class ConnectCommand implements Command{
         //throw new UnsupportedOperationException("Not supported yet.");
     }
     
-    protected VmInfo getVmInfo(Integer key, Map<Integer,VmInfo> jvmMap){
-        if(jvmMap == null) return null;
+    private void mapVmInfoToContext (Context ctx){
+        try {
+            Map<Integer,VmInfo> vmMap = Management.mapVmInfo(Management.VALUE_LOCALHOST);
+            ctx.putValue(Management.KEY_VMINFO_MAP, vmMap);
+        } catch (Exception ex) {
+            ctx.putValue(Management.KEY_VMINFO_MAP, null);
+        }
+    }
+    
+    private void invalidatePreviousConnection(Context ctx){
+        JMXConnector connector = (JMXConnector) ctx.getValue(Management.KEY_JMX_CONNECTOR);
+        if(connector != null){
+            try {
+                connector.close();
+            } catch (IOException ex) {
+                throw new ShellException(String.format("Unable to close MBean "
+                        + "server connection: %s", ex.getMessage()));
+            }
+        }
+        // nullify references
+        ctx.putValue(Management.KEY_JMX_URL, null);
+        ctx.putValue(Management.KEY_JMX_CONNECTOR, null);
+        ctx.putValue(Management.KEY_JMX_MBEANSERVER, null);
+    }
+    
+    private VmInfo getVmInfoFromMap(Integer key, Map<Integer,VmInfo> jvmMap){
+        if(jvmMap == null){
+            return null;
+        }
         return jvmMap.get(key);
     }    
 }

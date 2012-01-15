@@ -35,7 +35,7 @@ public class JmxAgentTest {
     
     @Test
     public void testStart() throws Exception{
-        agent = new JmxAgent(1010 + new Random().nextInt(888));
+        agent = new JmxAgent(9000 + new Random().nextInt(888));
         agent.start();
         
         assert agent.getConnectorServer() != null;

@@ -18,7 +18,10 @@ package cli.clamshell.jmx;
 import cli.clamshell.api.Command;
 import cli.clamshell.api.Context;
 import cli.clamshell.commons.AnInputController;
+import cli.clamshell.commons.ShellException;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -55,17 +58,16 @@ public class JmxController  extends AnInputController {
             
             // if there are arguments
             if(tokens.length > 1 ){
-                String argsString = Arrays.toString(
-                    Arrays.copyOfRange(tokens, 1, tokens.length)
-                ).replace("[", "").replace("]", "");
-                
+                String argsString = convertParamsToString(Arrays.copyOfRange(tokens, 1, tokens.length));
                 String argsJson = "{" + argsString + "}";
                 try{
-                    argsMap = gson.fromJson(argsJson, Map.class);
+                    Type mapType = new TypeToken<Map<String,Object>>(){}.getType();
+                    argsMap = gson.fromJson(argsJson, mapType);
                 }catch(Exception ex){
                     ctx.getIoConsole().writeOutput(
                         String.format("%nUnable to parse command parameters [%s]: "
                             + " %s.%n%n", argsJson, ex.getMessage()));
+                    return true;
                 }
             }
             
@@ -73,7 +75,11 @@ public class JmxController  extends AnInputController {
             Command cmd = null;
             if(commands != null && (cmd = commands.get(cmdName)) != null){
                 ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);
-                cmd.execute(ctx);
+                try{
+                    cmd.execute(ctx);
+                }catch(ShellException se){
+                    printException (se, ctx);
+                }
                 handled = true;
             }else{
                 handled = false;
@@ -107,7 +113,23 @@ public class JmxController  extends AnInputController {
                 String.format("%nNo commands were found for input controller"
                     + " [%s].%n%n", this.getClass().getName()));
         }
-        
+    }
+    
+    private void printException(ShellException ex, Context ctx){
+        ctx.getIoConsole().writeOutput(
+            String.format("%nError: %s%n%n", ex.getMessage())
+        );
     }
 
+    
+    private String convertParamsToString(String[] params){
+        StringBuffer buff = new StringBuffer();
+        for(int i = 0; i < params.length; i++){
+            buff.append(params[i].trim());
+            if(i < (params.length-1)){
+                buff.append(",");
+            }
+        }
+        return buff.toString();
+    }
 }

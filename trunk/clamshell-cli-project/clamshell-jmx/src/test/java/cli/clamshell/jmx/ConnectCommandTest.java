@@ -38,20 +38,10 @@ public class ConnectCommandTest {
         cmd = new ConnectCommand();
         argsMap = new HashMap<String,String>();
     }
-
-    private JmxAgent startNewJmxAgent(int port) throws Exception{
-        final JmxAgent agent = new JmxAgent(port);
-        agent.start();
-        return agent;
-    }
-    
-    private void stopJmxAgent(JmxAgent agent) throws Exception {
-        agent.stop();
-    }
     
     @Test
     public void testExecuteWithDefaultHostArgs () throws Exception{
-        JmxAgent agent = startNewJmxAgent(1099);
+        JmxAgent agent = TestUtils.startNewJmxAgent(1099);
         
         ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);
         cmd.execute(ctx);
@@ -59,14 +49,14 @@ public class ConnectCommandTest {
         JMXConnector c = (JMXConnector) ctx.getValue(Management.KEY_JMX_CONNECTOR);
         assert url != null;
         assert url.toString().equals(Management.getJmxUrlFrom("localhost").toString());
-        assert c != null;  
+        assert c == null;  
         
-        stopJmxAgent(agent);
+        agent.stop();
     }
     
     @Test
     public void testExecuteWithHostArgs() throws Exception {
-        JmxAgent agent = startNewJmxAgent(1999);
+        JmxAgent agent = TestUtils.startNewJmxAgent(1999);
         
         argsMap.put(Management.KEY_ARGS_HOST, "localhost:1999");
         
@@ -82,12 +72,12 @@ public class ConnectCommandTest {
         assert cn  != null;
        
         
-        stopJmxAgent(agent);
+        agent.stop();
     }
     
     @Test
     public void testExecuteWithPidArgs() throws Exception{
-        JmxAgent agent = startNewJmxAgent(1999);
+        JmxAgent agent = TestUtils.startNewJmxAgent(1999);
         
         Map<Integer,VmInfo> vms = Management.mapVmInfo("localhost");
         Integer vmId = vms.keySet().iterator().next();
@@ -104,8 +94,7 @@ public class ConnectCommandTest {
         assert c   != null;
         assert cn  != null;
        
-        
-        stopJmxAgent(agent);
+        agent.stop();
         
     }
 }

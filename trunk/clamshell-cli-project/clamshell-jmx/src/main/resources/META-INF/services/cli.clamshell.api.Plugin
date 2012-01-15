@@ -1,3 +1,5 @@
 cli.clamshell.jmx.JmxController
 cli.clamshell.jmx.PsCommand
 cli.clamshell.jmx.ConnectCommand
+cli.clamshell.jmx.MBeanCommand
+cli.clamshell.jmx.DescribeCommand

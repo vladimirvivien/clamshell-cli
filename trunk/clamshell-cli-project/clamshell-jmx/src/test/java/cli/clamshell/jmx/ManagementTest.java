@@ -19,6 +19,7 @@ import cli.clamshell.api.Configurator;
 import cli.clamshell.api.Context;
 import cli.clamshell.commons.ShellContext;
 import com.google.gson.Gson;
+import com.sun.tools.attach.VirtualMachine;
 import java.util.HashMap;
 import java.util.Map;
 import javax.management.remote.JMXServiceURL;
@@ -120,5 +121,17 @@ public class ManagementTest {
         MonitoredVm vm = Management.getMonitoredVmFromId(vmId);
         assert vm != null;
         assert vm.getVmIdentifier().getLocalVmId() == vmId.intValue();
+    }
+    
+    @Test
+    public void testGetLocalVmAddress() throws Exception{
+        Map<Integer, Management.VmInfo> map = Management.mapVmInfo("localhost");
+        Integer vmId = map.keySet().iterator().next();
+        VirtualMachine vm = VirtualMachine.attach(vmId.toString());
+        String addr = Management.getLocalVmAddress(vm);
+        vm.detach();
+        assert addr != null;
+        System.out.println (addr);
+        assert addr.contains("service:jmx:rmi://127.0.0.1/stub/");
     }
 }

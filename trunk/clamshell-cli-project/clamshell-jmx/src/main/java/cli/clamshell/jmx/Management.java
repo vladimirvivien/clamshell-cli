@@ -15,21 +15,27 @@
  */
 package cli.clamshell.jmx;
 
+import cli.clamshell.api.Context;
+import cli.clamshell.commons.ShellException;
+import com.sun.tools.attach.VirtualMachine;
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import javax.management.InstanceNotFoundException;
+import javax.management.MBeanServerConnection;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectInstance;
+import javax.management.ObjectName;
 import javax.management.remote.JMXServiceURL;
 import sun.jvmstat.monitor.HostIdentifier;
 import sun.jvmstat.monitor.MonitoredHost;
 import sun.jvmstat.monitor.MonitoredVm;
-import sun.jvmstat.monitor.MonitoredVmUtil;
 import sun.jvmstat.monitor.VmIdentifier;
-import sun.management.ConnectorAddressLink;
 
 /**
  * This is a helper class to aggregate common utility tools for different
@@ -44,6 +50,14 @@ public final class Management {
     public static final String KEY_JMX_MBEANSERVER = "key.jmx.mbServer";
     public static final String KEY_JMX_CONNECTOR = "key.jmx.connector";
     public static final String KEY_JMX_URL = "key.jmx.url";
+    public static final String KEY_MBEANS_MAP = "key.mbeans.map";
+    public static final String KEY_DEFAULT_MBEANS = "key.default.mbeans";
+    
+    protected static final String VALUE_FILE_SEP = File.separator;
+    protected static final String VALUE_AGENT_JAR = "management-agent.jar";
+    protected static final String VALUE_AGENT_INIT_PROP = "com.sun.management.jmxremote";
+    protected static final String VALUE_AGENT_CONNECTOR_PROP = "com.sun.management.jmxremote.localConnectorAddress";
+
     
     private Management(){}
 
@@ -159,7 +173,64 @@ public final class Management {
             throw new Exception(ex);
         }
         return svcUrl;
+    }
+    
+    /**
+     * This method returns the Connector address exported by the agent.
+     * @param vm process id
+     */
+    public static String getLocalVmAddress(VirtualMachine vm) throws Exception{
+ 
+        // load management-agent.jar from java_home/lib/
+        String homeDir = vm.getSystemProperties().getProperty("java.home");       
+        String agentPath = 
+            homeDir + Management.VALUE_FILE_SEP + 
+            "lib"   + Management.VALUE_FILE_SEP + 
+            Management.VALUE_AGENT_JAR;
+        
+        File agentFile = new File(agentPath);
+        if(!agentFile.exists() || !agentFile.isFile()){
+            throw new Exception("Unable to find management agent file.");
+        }
+        
+        vm.loadAgent(agentFile.getAbsolutePath(), Management.VALUE_AGENT_INIT_PROP);
 
+        Properties agentProps = vm.getAgentProperties();
+        String address = (String) agentProps.get(Management.VALUE_AGENT_CONNECTOR_PROP);
+        return address;
+    }
+    
+    public static void verifyServerConnection(Context ctx) throws ShellException{
+        MBeanServerConnection server = (MBeanServerConnection)ctx.getValue(Management.KEY_JMX_MBEANSERVER);
+         if(server == null){
+            throw new ShellException("No JMX server connection found. "
+                    + "Connect to a JMX server first (see help).");
+        }
+    }
+    
+    /**
+     * Returns a collection of fully-realized object instances.
+     * It uses the server instance to retrieve the instances if they exist.
+     * @param server - MBeanServerConnection instance
+     * @param nameStr - ObjectName expression used to retrieve beans
+     * @return ObjectInsatnce[] a collection of ObjectInstance
+     * @throws ShellException - if anything is not correct.
+     */
+    public static ObjectInstance[] getObjectInstances(MBeanServerConnection server, String nameStr) throws ShellException{
+        ObjectInstance[] result = null;
+        try {
+            ObjectName objName = new ObjectName(nameStr);
+            Set<ObjectInstance> objs = server.queryMBeans(objName, null);
+            result = (objs != null) ? objs.toArray(new ObjectInstance[]{}) : null;
+        } catch (IOException ex) {
+            throw new ShellException(ex);
+        } catch (MalformedObjectNameException ex) {
+            throw new ShellException(ex);
+        } catch (NullPointerException ex) {
+            throw new ShellException(ex);
+        }
+        
+        return result;
     }
     
     /**
@@ -178,8 +249,11 @@ public final class Management {
             this.monitoredVm = mVm;
             
             try{
-                address = ConnectorAddressLink.importFrom(monitoredVm.getVmIdentifier().getLocalVmId());
-                attachable = MonitoredVmUtil.isAttachable(mVm);
+                int vmId = monitoredVm.getVmIdentifier().getLocalVmId();
+                VirtualMachine vm = VirtualMachine.attach(String.valueOf(vmId));
+                address = Management.getLocalVmAddress(vm);
+                attachable = (address != null);
+                vm.detach();
             }catch(Exception ex){
                 throw new RuntimeException(ex);
             }
