@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanInfo;
+import javax.management.MBeanOperationInfo;
+import javax.management.MBeanParameterInfo;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
@@ -87,7 +89,7 @@ public class DescribeCommand implements Command{
         
         String mbeanParam = (argsMap  != null) ? (String)argsMap.get(KEY_ARGS_NAME) : null;
         Object attribsParam = (argsMap  != null) ? argsMap.get(KEY_ARGS_ATTRIBS) : null;
-        Object ops = (argsMap != null) ? argsMap.get(KEY_ARGS_OPS) : null;
+        Object opsParam = (argsMap != null) ? argsMap.get(KEY_ARGS_OPS) : null;
         
         ObjectInstance[] objs = getObjectInstances(ctx, mbeanParam);
         if(objs == null || objs.length == 0){
@@ -97,7 +99,7 @@ public class DescribeCommand implements Command{
         try{
             for(ObjectInstance obj : objs){
                 MBeanInfo beanInfo = server.getMBeanInfo(obj.getObjectName());
-                printInstanceMBeanInfo(ctx, obj);
+                printObjectInstanceInfo(ctx, obj);
 
                 // print attribs
                 if(attribsParam != null){
@@ -105,10 +107,10 @@ public class DescribeCommand implements Command{
                     if(attribsParam instanceof String){
                         String val = (String) attribsParam;
                         if(val.equals("*")){
-                            printInstanceAttribInfo(ctx, obj);
+                            printObjectInstanceAttribs(ctx, obj);
                         }else{
                             MBeanAttributeInfo attrib = retrieveAttribInfoByName(beanInfo, val);
-                            printAttribInfo(ctx, attrib);
+                            c.writeOutput(String.format("%n%s",getAttribDesc(attrib)));
                         }
                     }
                     if(attribsParam instanceof List){
@@ -116,8 +118,29 @@ public class DescribeCommand implements Command{
                         for(String name : attribNames){
                             if(name != null){
                                 MBeanAttributeInfo attrib = retrieveAttribInfoByName(beanInfo,name);
-                                printAttribInfo(ctx, attrib);    
+                                c.writeOutput(String.format("%n%s",getAttribDesc(attrib)));
                             }
+                        }
+                    }
+                }
+                
+                // print ops
+                if(opsParam != null){
+                    c.writeOutput(String.format("%n%nOperations:"));
+                    if(opsParam instanceof String){
+                        String val = (String)opsParam;
+                        if(val.equals("*")){
+                            printObjectInstanceOps(ctx,obj);
+                        }else{
+                            MBeanOperationInfo op = retrieveOpInfoByName(beanInfo, val);
+                            c.writeOutput(String.format("%n%s",getOperationDesc(op)));
+                        }
+                    }
+                    if(opsParam instanceof List){
+                        List<String> opNames = (List<String>)opsParam;
+                        for(String name : opNames){
+                            MBeanOperationInfo op = retrieveOpInfoByName(beanInfo, name);
+                            c.writeOutput(String.format("%n%s",getOperationDesc(op)));                            
                         }
                     }
                 }
@@ -152,8 +175,7 @@ public class DescribeCommand implements Command{
         }
     }
     
-    
-    private void printInstanceMBeanInfo(Context ctx, ObjectInstance obj) throws Exception{
+    private void printObjectInstanceInfo(Context ctx, ObjectInstance obj) throws Exception{
         IOConsole c = ctx.getIoConsole();
         MBeanServerConnection server = (MBeanServerConnection)ctx.getValue(Management.KEY_JMX_MBEANSERVER); 
         
@@ -163,28 +185,32 @@ public class DescribeCommand implements Command{
         c.writeOutput(String.format("%n%s", info.getDescription()));
     }
     
-    private void printInstanceAttribInfo(Context ctx, ObjectInstance obj) throws Exception {
+    private void printObjectInstanceAttribs(Context ctx, ObjectInstance obj) throws Exception {
         IOConsole c = ctx.getIoConsole();
         MBeanServerConnection server = (MBeanServerConnection)ctx.getValue(Management.KEY_JMX_MBEANSERVER); 
 
         MBeanInfo info = server.getMBeanInfo(obj.getObjectName());
         MBeanAttributeInfo[] attribs = info.getAttributes();
         for(MBeanAttributeInfo attrib : attribs){
-            printAttribInfo(ctx, attrib);
+            c.writeOutput(String.format("%n%s",getAttribDesc(attrib)));
         }
     }
     
-    private void printAttribInfo(Context ctx, MBeanAttributeInfo attrib){
-        IOConsole c = ctx.getIoConsole();
-        c.writeOutput(String.format("%n%5s%s (%s)", " ", attrib.getName(), attrib.getType()));
-        c.writeOutput("(");
+    private String getAttribDesc(MBeanAttributeInfo attrib){
+        StringBuilder result = new StringBuilder();
+        result.append(String.format("%5s%s : %s ", " ", attrib.getName(), attrib.getType()));
+        
+        result.append("(");
         if (attrib.isReadable()) {
-            c.writeOutput("R");
+            result.append("r");
         }
         if (attrib.isWritable()) {
-            c.writeOutput("W");
+            result.append("w");
         }
-        c.writeOutput(")");
+        result.append(")");
+        result.append(" - ").append(attrib.getDescription());
+        
+        return result.toString();
     }
     
     private MBeanAttributeInfo retrieveAttribInfoByName(MBeanInfo mbeanInfo, String attribName){
@@ -192,6 +218,43 @@ public class DescribeCommand implements Command{
         for(MBeanAttributeInfo attrib : attribs){
             if(attrib.getName().equalsIgnoreCase(attribName)){
                 return attrib;
+            }
+        }
+        return null;
+    }
+    
+    private void printObjectInstanceOps(Context ctx, ObjectInstance obj) throws Exception{
+        IOConsole c = ctx.getIoConsole();
+        MBeanServerConnection server = (MBeanServerConnection)ctx.getValue(Management.KEY_JMX_MBEANSERVER); 
+
+        MBeanInfo info = server.getMBeanInfo(obj.getObjectName());
+        MBeanOperationInfo[] ops = info.getOperations();
+        for(MBeanOperationInfo op : ops){
+            c.writeOutput(String.format("%n%s",getOperationDesc(op)));
+        }
+    }
+    
+    private String getOperationDesc(MBeanOperationInfo op){
+        StringBuilder result = new StringBuilder();
+        result.append(String.format("%5s%s"," ",op.getName()));
+        result.append("(");
+        MBeanParameterInfo[] params = op.getSignature();
+        for(int j = 0; j < params.length; j++){
+            result.append(params[j].getType());
+            if(j < params.length-1){
+                result.append(",");
+            }
+        }
+        result.append(")");
+        result.append(":").append(op.getReturnType());
+        return result.toString();
+    }
+    
+    private MBeanOperationInfo retrieveOpInfoByName(MBeanInfo mbeanInfo, String opName){
+        MBeanOperationInfo[] ops = mbeanInfo.getOperations();
+        for(MBeanOperationInfo op : ops){
+            if(op.getName().equalsIgnoreCase(opName)){
+                return op;
             }
         }
         return null;
