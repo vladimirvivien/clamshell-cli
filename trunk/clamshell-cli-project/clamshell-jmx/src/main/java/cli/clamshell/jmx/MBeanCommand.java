@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectInstance;
+import javax.management.ObjectName;
 
 /**
  * This command sets an identifier for one or more MBean names for later use with other
@@ -31,7 +32,7 @@ import javax.management.ObjectInstance;
  * used as default MBean in subsequent commands that need bean names.
  * format:
  * <pre>
- *     mbean name:<mbean_object_expression> as:‘<identifier>’
+ *     mbean name:<mbean_object> as:‘<identifier>’
  * </pre>
  * <ul>
  * <li>
@@ -52,7 +53,6 @@ public class MBeanCommand implements Command{
     private static final String KEY_ARGS_AS   = "as";
     
     private Command.Descriptor descriptor = null;
-    private Map<String,ObjectInstance[]> mbeanMap;
     
     public Descriptor getDescriptor() {
         return (descriptor != null ) ? descriptor : (
@@ -67,7 +67,7 @@ public class MBeanCommand implements Command{
                 }
 
                 public String getDescription() {
-                    return "Sets an identifier for one or more MBean names that "
+                    return "Sets an identifier for an MBean "
                             + "to be used in other commands.";
                 }
 
@@ -79,8 +79,8 @@ public class MBeanCommand implements Command{
                 public Map<String, String> getArguments() {
                     if(args != null) return args;
                     args = new HashMap<String,String>();
-                    args.put("name:<ObjectName> (required)", "ObjectName expression for beans.");
-                    args.put("as:<identifier>", "An alias that used to identify the MBeans.");   
+                    args.put("name:<ObjectName>", "ObjectName for bean.");
+                    args.put("as:<identifier>", "A user-provided identifier.");   
                     return args;
                 }
             }
@@ -90,46 +90,41 @@ public class MBeanCommand implements Command{
     public Object execute(Context ctx) {
         IOConsole c = ctx.getIoConsole();
         Map<String,Object> argsMap = (Map<String,Object>) ctx.getValue(Context.KEY_COMMAND_LINE_ARGS);
+        Map<String,ObjectInstance> mbeanMap = (Map<String,ObjectInstance>)ctx.getValue(Management.KEY_MBEANS_MAP);
 
         // validate connection
         Management.verifyServerConnection(ctx);
         MBeanServerConnection server = (MBeanServerConnection)ctx.getValue(Management.KEY_JMX_MBEANSERVER);        
+        
+        String nameParam = (argsMap != null) ? (String)argsMap.get(KEY_ARGS_NAME) : null;
+        String asParam = (argsMap != null) ? (String)argsMap.get(KEY_ARGS_AS) : null;
+
         // valdate name param
-        if(!isNameArgValid(argsMap)){
+        if(nameParam == null){
             throw new ShellException("Command \"mbean\" "
-                    + "requires the 'name:' parameter to specify "
-                    + "the ObjectName expression (see help).");
+                    + "requires the 'name:' parameter to set the MBean (see help). ");
         }
         
-        String nameParam = (String)argsMap.get(KEY_ARGS_NAME);
-        String asParam = (String)argsMap.get(KEY_ARGS_AS);
-        
-        ObjectInstance[] objs = Management.getObjectInstances(server,nameParam);
-        if(objs == null || objs.length == 0){
-            throw new ShellException(String.format("%nNo beans found with name expression %s.%n%n",nameParam));
+        ObjectInstance obj = null;
+        try{
+            obj = Management.getObjectInstance(server, nameParam);
+        }catch(ShellException ex){
+            throw new ShellException (String.format("%nError locating MBean %s: "
+                    + "%s", nameParam, ex.getMessage()));
         }
-        
+                        
         if(asParam == null){
-            mbeanMap.put(Management.KEY_DEFAULT_MBEANS, objs);
-            c.writeOutput(String.format("%n%d bean(s) as default (using %s).%n%n",objs.length, nameParam));
+            mbeanMap.put(Management.KEY_DEFAULT_MBEANS, obj);
+            c.writeOutput(String.format("%nMBean %s set as default.%n%n",nameParam));
         }else{
-            mbeanMap.put(asParam, objs);
-            c.writeOutput(String.format("%n%d bean(s) set as %s (using %s).%n%n",objs.length, asParam, nameParam));
+            mbeanMap.put(asParam, obj);
+            c.writeOutput(String.format("%nMBean %s set as %s.%n%n", nameParam, asParam));
         }
         
         return null;
     }
 
     public void plug(Context plug) {
-        mbeanMap = new HashMap<String,ObjectInstance[]>();
-        plug.putValue(Management.KEY_MBEANS_MAP, mbeanMap);
     }
-    
-    private boolean isNameArgValid (Map<String,Object> args){
-        if(args == null)
-            return false;
-        String arg = (String)args.get(KEY_ARGS_NAME);
-        return (arg != null && !arg.isEmpty());
-    }
-    
+
 }

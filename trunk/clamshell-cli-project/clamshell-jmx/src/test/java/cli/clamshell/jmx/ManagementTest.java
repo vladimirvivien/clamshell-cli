@@ -22,6 +22,8 @@ import com.google.gson.Gson;
 import com.sun.tools.attach.VirtualMachine;
 import java.util.HashMap;
 import java.util.Map;
+import javax.management.ObjectInstance;
+import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXServiceURL;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -131,7 +133,16 @@ public class ManagementTest {
         String addr = Management.getLocalVmAddress(vm);
         vm.detach();
         assert addr != null;
-        System.out.println (addr);
         assert addr.contains("service:jmx:rmi://127.0.0.1/stub/");
+    }
+    
+    @Test
+    public void testGetObjectInstance() throws Exception{
+        JmxAgent agent = new JmxAgent(1999);
+        agent.start();
+        JMXConnectorServer server = agent.getConnectorServer();
+        ObjectInstance instance = Management.getObjectInstance(server.getMBeanServer(), "java.lang:type=Runtime");
+        assert instance != null;
+        agent.stop();
     }
 }

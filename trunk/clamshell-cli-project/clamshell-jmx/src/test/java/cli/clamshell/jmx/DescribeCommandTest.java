@@ -107,10 +107,10 @@ public class DescribeCommandTest {
     public void testCommandWithBeanNameAsAlias() throws Exception{
         TestUtils.setupJmxConnection(ctx);
         TestUtils.setupDefaultMBeanInstance(ctx);
-        Map<String,ObjectInstance[]> mbeanMap = (Map<String,ObjectInstance[]>) ctx.getValue(Management.KEY_MBEANS_MAP);
+        Map<String,ObjectInstance> mbeanMap = (Map<String,ObjectInstance>) ctx.getValue(Management.KEY_MBEANS_MAP);
 
-        ObjectInstance[] beanInstances = mbeanMap.get(Management.KEY_DEFAULT_MBEANS);
-        mbeanMap.put("runtimeBean", beanInstances);
+        ObjectInstance beanInstance = mbeanMap.get(Management.KEY_DEFAULT_MBEANS);
+        mbeanMap.put("runtimeBean", beanInstance);
         
         argsMap.put("name", "runtimeBean");
         ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);

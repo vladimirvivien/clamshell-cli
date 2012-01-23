@@ -85,11 +85,7 @@ public class ListCommand implements Command{
     public Object execute(Context ctx) {
         IOConsole c = ctx.getIoConsole();
         Map<String,Object> argsMap = (Map<String,Object>) ctx.getValue(Context.KEY_COMMAND_LINE_ARGS);
-        Map<String,ObjectInstance[]> mbeanMap = (Map<String,ObjectInstance[]>) ctx.getValue(Management.KEY_MBEANS_MAP);
-        if(mbeanMap == null){
-            mbeanMap = new HashMap<String,ObjectInstance[]>();
-            ctx.putValue(Management.KEY_MBEANS_MAP, mbeanMap);
-        }
+        Map<String,ObjectInstance> mbeanMap = (Map<String,ObjectInstance>) ctx.getValue(Management.KEY_MBEANS_MAP);
                 
         // validate connection
         Management.verifyServerConnection(ctx);
@@ -138,7 +134,7 @@ public class ListCommand implements Command{
         for (ObjectInstance obj : objs) {
             if (setid) {
                 String beanId = String.format("$%d", counter);
-                mbeanMap.put(beanId, new ObjectInstance[]{obj});
+                mbeanMap.put(beanId, obj);
                 c.writeOutput(getInstanceDesc(obj, true, beanId));
             } else {
                 c.writeOutput(getInstanceDesc(obj, false, null));
@@ -161,18 +157,16 @@ public class ListCommand implements Command{
         StringBuilder s = new StringBuilder();
         if (setId) {
             s.append(String.format(
-            "%n%5s[%s] %s (%s)",
+            "%n%5s[%s] %s",
                 " ",
                 id,
-                obj.getObjectName().getCanonicalName(),
-                obj.getClassName())
+                obj.getObjectName().getCanonicalName())
             );
         }else{
             s.append(String.format(
-                "%n%5s %s (%s)",
+                "%n%5s %s",
                 " ",
-                obj.getObjectName().getCanonicalName(),
-                obj.getClassName())
+                obj.getObjectName().getCanonicalName())
             );
             
         }

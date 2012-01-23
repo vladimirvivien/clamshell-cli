@@ -72,7 +72,7 @@ public class MBeanCommandTest {
             Assert.fail();
         }catch(ShellException ex){
             //assert ctx.getValue(Management.KEY_JMX_MBEANSERVER) == null;
-            Map<String,ObjectInstance[]> mbeans = (Map<String,ObjectInstance[]>)ctx.getValue(Management.KEY_MBEANS_MAP);
+            Map<String,ObjectInstance> mbeans = (Map<String,ObjectInstance>)ctx.getValue(Management.KEY_MBEANS_MAP);
             assert mbeans.get(Management.KEY_DEFAULT_MBEANS) == null;
         }
     }
@@ -85,7 +85,7 @@ public class MBeanCommandTest {
             cmd.execute(ctx);
             Assert.fail();
         }catch(ShellException ex){
-            Map<String,ObjectInstance[]> mbeans = (Map<String,ObjectInstance[]>)ctx.getValue(Management.KEY_MBEANS_MAP);
+            Map<String,ObjectInstance> mbeans = (Map<String,ObjectInstance>)ctx.getValue(Management.KEY_MBEANS_MAP);
             assert mbeans.get(Management.KEY_DEFAULT_MBEANS) == null;
         }
     }
@@ -97,10 +97,9 @@ public class MBeanCommandTest {
         ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);
         try{
             cmd.execute(ctx);
-            Map<String,ObjectInstance[]> mbeans = (Map<String,ObjectInstance[]>)ctx.getValue(Management.KEY_MBEANS_MAP);
-            ObjectInstance[] objs = mbeans.get(Management.KEY_DEFAULT_MBEANS);
-            assert objs != null;
-            assert objs.length == 1;
+            Map<String,ObjectInstance> mbeans = (Map<String,ObjectInstance>)ctx.getValue(Management.KEY_MBEANS_MAP);
+            ObjectInstance obj = mbeans.get(Management.KEY_DEFAULT_MBEANS);
+            assert obj != null;
         }catch(ShellException ex){
             Assert.fail(ex.getMessage());
         }

@@ -18,15 +18,19 @@ package cli.clamshell.jmx;
 import cli.clamshell.api.Command;
 import cli.clamshell.api.Context;
 import cli.clamshell.jmx.Management.VmInfo;
+import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.Map;
+import javax.management.MBeanServerConnection;
 import javax.management.ObjectInstance;
+import javax.management.ObjectName;
 
 /**
  * Utility methods for testing.
  * @author vladimir.vivien
  */
 public class TestUtils {
+    public static String MBEAN_NAME = "test.jmx:type=bean";
     public static JmxAgent startNewJmxAgent(int port) throws Exception{
         JmxAgent agent = new JmxAgent(port);
         agent.start();
@@ -34,6 +38,8 @@ public class TestUtils {
     }
     
     public static void setupJmxConnection(Context ctx) throws Exception{
+        MBeanServerConnection conn = ManagementFactory.getPlatformMBeanServer();
+        ctx.putValue(Management.KEY_JMX_MBEANSERVER, conn);
         Command cmd = new ConnectCommand();
         cmd.plug(ctx);
         
@@ -56,10 +62,11 @@ public class TestUtils {
     }
     
     public static void setupDefaultMBeanInstance(Context ctx){
+        Map<String,ObjectInstance> beanMap = new HashMap<String,ObjectInstance>();
+        ctx.putValue(Management.KEY_MBEANS_MAP, beanMap);
+
         Command cmd = new MBeanCommand();
         cmd.plug(ctx);
-        Map<String, ObjectInstance[]> beanMap = (Map<String, ObjectInstance[]>) ctx.getValue(Management.KEY_MBEANS_MAP);
-        assert beanMap != null;
         
         Map<String,Object> argsMap = (ctx.getValue(Context.KEY_COMMAND_LINE_ARGS) != null) 
                 ? (Map<String,Object>) ctx.getValue(Context.KEY_COMMAND_LINE_ARGS)
@@ -69,5 +76,10 @@ public class TestUtils {
         cmd.execute(ctx);
         
         assert beanMap.get(Management.KEY_DEFAULT_MBEANS) != null;
+    }
+    
+    public static void registerTestMBean(JmxAgent agent) throws Exception{
+        JmxMBean bean = new JmxMBeanImpl();     
+        agent.getConnectorServer().getMBeanServer().registerMBean(bean, new ObjectName(MBEAN_NAME));
     }
 }

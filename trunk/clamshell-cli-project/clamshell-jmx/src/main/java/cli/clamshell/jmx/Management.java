@@ -25,6 +25,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanServerConnection;
@@ -36,6 +38,7 @@ import sun.jvmstat.monitor.HostIdentifier;
 import sun.jvmstat.monitor.MonitoredHost;
 import sun.jvmstat.monitor.MonitoredVm;
 import sun.jvmstat.monitor.VmIdentifier;
+import sun.management.ConnectorAddressLink;
 
 /**
  * This is a helper class to aggregate common utility tools for different
@@ -209,6 +212,30 @@ public final class Management {
     }
     
     /**
+     * Convenience wrapper for MBeanServerConnection.getObjectInstance().
+     * It rolls up all exception into ShellException.
+     * @param server
+     * @param nameStr
+     * @return
+     * @throws ShellException 
+     */
+    public static ObjectInstance getObjectInstance(MBeanServerConnection server, String nameStr) throws ShellException{
+        ObjectInstance result = null;
+        try {
+            result = server.getObjectInstance(new ObjectName(ObjectName.quote(nameStr)));
+        } catch (MalformedObjectNameException ex) {
+            throw new ShellException(ex);
+        } catch (NullPointerException ex) {
+            throw new ShellException(ex);
+        } catch (InstanceNotFoundException ex) {
+            throw new ShellException(ex);
+        } catch (IOException ex) {
+            throw new ShellException(ex);
+        }
+        
+        return result;
+    }
+    /**
      * Returns a collection of fully-realized object instances.
      * It uses the server instance to retrieve the instances if they exist.
      * @param server - MBeanServerConnection instance
@@ -219,7 +246,7 @@ public final class Management {
     public static ObjectInstance[] getObjectInstances(MBeanServerConnection server, String nameStr) throws ShellException{
         ObjectInstance[] result = null;
         try {
-            ObjectName objName = new ObjectName(nameStr);
+            ObjectName objName = new ObjectName(ObjectName.quote(nameStr));
             Set<ObjectInstance> objs = server.queryMBeans(objName, null);
             result = (objs != null) ? objs.toArray(new ObjectInstance[]{}) : null;
         } catch (IOException ex) {
@@ -247,15 +274,19 @@ public final class Management {
             assert mVm.getVmIdentifier() != null;
             
             this.monitoredVm = mVm;
-            
+            int vmId = monitoredVm.getVmIdentifier().getLocalVmId();
             try{
-                int vmId = monitoredVm.getVmIdentifier().getLocalVmId();
                 VirtualMachine vm = VirtualMachine.attach(String.valueOf(vmId));
                 address = Management.getLocalVmAddress(vm);
                 attachable = (address != null);
-                vm.detach();
             }catch(Exception ex){
-                throw new RuntimeException(ex);
+                try {
+                    address = ConnectorAddressLink.importFrom(vmId);
+                } catch (IOException ex1) {
+                    throw new ShellException (ex1);
+                }
+            }finally{
+                mVm.detach();
             }
         }
         

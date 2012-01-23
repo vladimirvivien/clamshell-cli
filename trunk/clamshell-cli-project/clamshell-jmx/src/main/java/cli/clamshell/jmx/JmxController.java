@@ -23,10 +23,12 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import javax.management.ObjectInstance;
 
 /**
  * This is an implementation of the InputController for the JMX CLI.
@@ -104,7 +106,10 @@ public class JmxController  extends AnInputController {
                 cmd.plug(plug);
                 cmdHints.addAll(collectInputHints(cmd));
             }
-
+            // setup a map for cached jmx objects
+            plug.putValue(Management.KEY_MBEANS_MAP, new HashMap<String,ObjectInstance>());
+ 
+            
             // save expected command input hints
             setExpectedInputs(cmdHints.toArray(new String[0]));
             
@@ -117,7 +122,7 @@ public class JmxController  extends AnInputController {
     
     private void printException(ShellException ex, Context ctx){
         ctx.getIoConsole().writeOutput(
-            String.format("%nError: %s%n%n", ex.getMessage())
+            String.format("%n%s%n%n", ex.getMessage())
         );
     }
 

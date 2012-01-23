@@ -102,8 +102,10 @@ public class DescribeCommand implements Command{
                 printObjectInstanceInfo(ctx, obj);
 
                 // print attribs
-                if(attribsParam != null){
-                    c.writeOutput(String.format("%n%nAttributes:"));
+                c.writeOutput(String.format("%n%nAttributes:"));
+                if(attribsParam == null){
+                    printObjectInstanceAttribs(ctx, obj);
+                }else{
                     if(attribsParam instanceof String){
                         String val = (String) attribsParam;
                         if(val.equals("*")){
@@ -125,8 +127,10 @@ public class DescribeCommand implements Command{
                 }
                 
                 // print ops
-                if(opsParam != null){
-                    c.writeOutput(String.format("%n%nOperations:"));
+                c.writeOutput(String.format("%n%nOperations:"));
+                if(opsParam == null){
+                    printObjectInstanceOps(ctx,obj);
+                }else{
                     if(opsParam instanceof String){
                         String val = (String)opsParam;
                         if(val.equals("*")){
@@ -144,6 +148,7 @@ public class DescribeCommand implements Command{
                         }
                     }
                 }
+                c.writeOutput(String.format("%n%n"));
             }
         }catch(Exception ex){
             throw new ShellException(ex);
@@ -157,17 +162,19 @@ public class DescribeCommand implements Command{
     }
     
     private ObjectInstance[] getObjectInstances(Context ctx, String mbeanParam) throws ShellException {
-        Map<String, ObjectInstance[]> map = (Map<String, ObjectInstance[]>) ctx.getValue(Management.KEY_MBEANS_MAP);
+        Map<String, ObjectInstance> map = (Map<String, ObjectInstance>) ctx.getValue(Management.KEY_MBEANS_MAP);
 
         if (mbeanParam == null) {
             if (map == null || map.get(Management.KEY_DEFAULT_MBEANS) == null) {
                 throw new ShellException(String.format("You must specify the beans to use for this command.%n"
-                        + "Use the 'name' parameter or set the mbeans with 'mbean' command (see help)."));
+                        + "Use the 'name' parameter or an MBean with 'mbean' command (see help)."));
             }
-            return map.get(Management.KEY_DEFAULT_MBEANS);
+            return new ObjectInstance[]{map.get(Management.KEY_DEFAULT_MBEANS)};
         } else {
-            ObjectInstance[] objs = (map != null) ? map.get(mbeanParam) :  null;
-            if (objs == null) {
+            ObjectInstance[] objs = null;
+            if(map != null && map.get(mbeanParam) != null){
+                objs = new ObjectInstance[]{map.get(mbeanParam)};
+            }else{
                 MBeanServerConnection conn = (MBeanServerConnection) ctx.getValue(Management.KEY_JMX_MBEANSERVER);
                 objs = Management.getObjectInstances(conn, mbeanParam);
             }
