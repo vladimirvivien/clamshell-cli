@@ -17,7 +17,6 @@ package cli.clamshell.jmx;
 
 import cli.clamshell.api.Command;
 import cli.clamshell.api.Context;
-import cli.clamshell.jmx.Management.VmInfo;
 import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,32 +38,13 @@ public class TestUtils {
     
     public static void setupJmxConnection(Context ctx) throws Exception{
         MBeanServerConnection conn = ManagementFactory.getPlatformMBeanServer();
+        assert conn != null;
         ctx.putValue(Management.KEY_JMX_MBEANSERVER, conn);
-        Command cmd = new ConnectCommand();
-        cmd.plug(ctx);
-        
-        Map<String,Object> argsMap = new HashMap<String,Object>();
-        
-        Map<Integer,VmInfo> vms = Management.mapVmInfo("localhost");
-        VmInfo vm = null;
-        for(Map.Entry<Integer,VmInfo> e : vms.entrySet()){
-            if(e.getValue().isAttachable()){
-                vm = e.getValue();
-                break;
-            }
-        }
-        
-        if(vm != null){
-            argsMap.put(Management.KEY_ARGS_PID, vm.getMonitoredVm().getVmIdentifier().getLocalVmId());
-            ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);
-            cmd.execute(ctx);
-        }
     }
     
-    public static void setupDefaultMBeanInstance(Context ctx){
+    public static void setupDefaultMBeanInstance(Context ctx) throws Exception{
         Map<String,ObjectInstance> beanMap = new HashMap<String,ObjectInstance>();
         ctx.putValue(Management.KEY_MBEANS_MAP, beanMap);
-
         Command cmd = new MBeanCommand();
         cmd.plug(ctx);
         
@@ -78,8 +58,11 @@ public class TestUtils {
         assert beanMap.get(Management.KEY_DEFAULT_MBEANS) != null;
     }
     
-    public static void registerTestMBean(JmxAgent agent) throws Exception{
-        JmxMBean bean = new JmxMBeanImpl();     
-        agent.getConnectorServer().getMBeanServer().registerMBean(bean, new ObjectName(MBEAN_NAME));
+    public static void registerMBean(JmxAgent agent, TestJmxMBeanMBean obj, String name) throws Exception{   
+        agent.getConnectorServer().getMBeanServer().registerMBean(obj, new ObjectName(name));
+    }
+    
+    public static void unregisterMBean(JmxAgent agent, String name) throws Exception{
+        agent.getConnectorServer().getMBeanServer().unregisterMBean(new ObjectName(name));
     }
 }

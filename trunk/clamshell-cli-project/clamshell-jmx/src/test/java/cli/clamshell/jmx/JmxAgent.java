@@ -46,14 +46,8 @@ public class JmxAgent {
         
         System.setProperty("java.rmi.server.randomIDs", "true");
         reg = LocateRegistry.createRegistry(port);
-                
-        // export connector server
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-
-        HashMap<String,Object> env = new HashMap<String,Object>();
-        //env.put("jmx.remote.x.password.file", "../jmx-password.properties");
-        //env.put("jmx.remote.x.access.file", "../jmx-access.properties");
-       
+        HashMap<String,Object> env = new HashMap<String,Object>();       
         JMXServiceURL url =
             new JMXServiceURL("service:jmx:rmi:///jndi/rmi://localhost:" + port + "/jmxrmi");
         server = JMXConnectorServerFactory.newJMXConnectorServer(url, env, mbs);

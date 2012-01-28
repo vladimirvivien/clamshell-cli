@@ -34,7 +34,7 @@ public class MBeanCommandTest {
     Context ctx = MockContext.createInstance();
     MBeanCommand cmd;
     Map<String,String> argsMap;
-    Map<String,ObjectInstance[]> mbeanMap;
+    Map<String,ObjectInstance> mbeanMap;
     
     public MBeanCommandTest() {
         cmd = new MBeanCommand();
@@ -44,8 +44,8 @@ public class MBeanCommandTest {
 
     
     private void plugCommand(){
-        cmd.plug(ctx);
-        mbeanMap = (Map<String, ObjectInstance[]>) ctx.getValue(Management.KEY_MBEANS_MAP);
+        mbeanMap = new HashMap<String, ObjectInstance>();
+        ctx.putValue(Management.KEY_MBEANS_MAP, mbeanMap);
     }
     
     JmxAgent agent;
@@ -70,11 +70,7 @@ public class MBeanCommandTest {
         try{
             cmd.execute(ctx);
             Assert.fail();
-        }catch(ShellException ex){
-            //assert ctx.getValue(Management.KEY_JMX_MBEANSERVER) == null;
-            Map<String,ObjectInstance> mbeans = (Map<String,ObjectInstance>)ctx.getValue(Management.KEY_MBEANS_MAP);
-            assert mbeans.get(Management.KEY_DEFAULT_MBEANS) == null;
-        }
+        }catch(ShellException ex){}
     }
     
     @Test
@@ -113,29 +109,12 @@ public class MBeanCommandTest {
         ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);
         try{
             cmd.execute(ctx);
-            Map<String,ObjectInstance[]> mbeans = (Map<String,ObjectInstance[]>)ctx.getValue(Management.KEY_MBEANS_MAP);
-            ObjectInstance[] objs = mbeans.get("runtimeMBean");
-            assert objs != null;
-            assert objs.length == 1;
+            Map<String,ObjectInstance> mbeans = (Map<String,ObjectInstance>)ctx.getValue(Management.KEY_MBEANS_MAP);
+            ObjectInstance obj = mbeans.get("runtimeMBean");
+            assert obj != null;
         }catch(ShellException ex){
             Assert.fail(ex.getMessage());
         }
     }
     
-    @Test
-    public void testCommandWithASetOfBeans() throws Exception{
-        TestUtils.setupJmxConnection(ctx);
-        argsMap.put("name", "java.lang:type=*");
-        argsMap.put("as", "platformBeans");
-        ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);
-        try{
-            cmd.execute(ctx);
-            Map<String,ObjectInstance[]> mbeans = (Map<String,ObjectInstance[]>)ctx.getValue(Management.KEY_MBEANS_MAP);
-            ObjectInstance[] objs = mbeans.get("platformBeans");
-            assert objs != null;
-            assert objs.length > 1;
-        }catch(ShellException ex){
-            Assert.fail(ex.getMessage());
-        }
-    }
 }

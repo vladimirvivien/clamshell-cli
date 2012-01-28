@@ -222,7 +222,7 @@ public final class Management {
     public static ObjectInstance getObjectInstance(MBeanServerConnection server, String nameStr) throws ShellException{
         ObjectInstance result = null;
         try {
-            result = server.getObjectInstance(new ObjectName(ObjectName.quote(nameStr)));
+            result = server.getObjectInstance(new ObjectName(nameStr));
         } catch (MalformedObjectNameException ex) {
             throw new ShellException(ex);
         } catch (NullPointerException ex) {
@@ -246,7 +246,7 @@ public final class Management {
     public static ObjectInstance[] getObjectInstances(MBeanServerConnection server, String nameStr) throws ShellException{
         ObjectInstance[] result = null;
         try {
-            ObjectName objName = new ObjectName(ObjectName.quote(nameStr));
+            ObjectName objName = new ObjectName(nameStr);
             Set<ObjectInstance> objs = server.queryMBeans(objName, null);
             result = (objs != null) ? objs.toArray(new ObjectInstance[]{}) : null;
         } catch (IOException ex) {

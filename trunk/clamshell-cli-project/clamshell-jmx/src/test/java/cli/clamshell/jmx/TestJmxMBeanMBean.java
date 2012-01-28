@@ -19,34 +19,17 @@ package cli.clamshell.jmx;
  *
  * @author vvivien
  */
-public class JmxMBeanImpl implements JmxMBean{
-    private String strVal;
-    private Integer intVal;
-    public void setStringValue(String val) {
-        strVal = val;
-    }
-
-    public String getStringValue() {
-        return strVal;
-    }
-
-    public Integer getNumericValue() {
-        return intVal;
-    }
-
-    public void setNumericValue(Integer val) {
-        intVal = val;
-    }
-
-    public void exec() {
-        strVal = "EXEC_VAL";
-    }
-
-    public void execWithParam(String val) {
-        strVal = val;
-    }
-
-    public String retrieveValue() {
-        return strVal;
-    }
+public interface TestJmxMBeanMBean {
+    public static final String NAME="test.jmx:type=bean";
+    public void setStringValue(String val);
+    public String getStringValue();
+    public Integer getNumericValue();
+    public void setNumericValue(Integer val);
+    
+    public void exec();
+    public void exec(String val);
+    public void execWithParam(String val);
+    public void execWithParam(Integer val);
+    public void execWithParams(String val1, Integer val2);
+    public String retrieveValue();
 }
