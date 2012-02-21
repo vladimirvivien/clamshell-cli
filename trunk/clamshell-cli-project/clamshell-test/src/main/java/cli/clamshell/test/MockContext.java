@@ -37,6 +37,9 @@ public final class MockContext implements Context
         plugins = new ArrayList<Plugin>();
         plugins.add(new MockShell());
         plugins.add(new MockConsole());
+        
+        values.put(KEY_INPUT_STREAM, System.in);
+        values.put(KEY_OUTPUT_STREAM, System.out);
     }
     
     public Map<String, ? extends Object> getValues() {

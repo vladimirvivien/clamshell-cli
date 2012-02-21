@@ -15,7 +15,8 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 
---><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>cli.clamshell</groupId>
@@ -74,16 +75,30 @@
         <module>clamshell-launcher</module>
         <module>clamshell-splashscreen</module>
         <module>clamshell-jmx</module>
-    <module>clamshell-test</module>
-  </modules>
+        <module>clamshell-test</module>
+    </modules>
     
     <profiles>
         <profile>
-            <id>dist</id>
+            <id>dist-base-cli</id>
             <activation>
                 <property>
-                    <name>build.target</name>
-                    <value>dist</value>
+                    <name>dist.base</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <modules>
+                <module>project-assembler</module>
+            </modules>
+        </profile>
+        
+        
+        <profile>
+            <id>javadocs</id>
+            <activation>
+                <property>
+                    <name>build.javadocs</name>
+                    <value>true</value>
                 </property>
             </activation>
             
@@ -109,11 +124,6 @@
                     </plugin>
                 </plugins>
             </build>
-            
-            <modules>
-                <module>project-assembler</module>
-            </modules>
-            
         </profile>
         
         <profile>
