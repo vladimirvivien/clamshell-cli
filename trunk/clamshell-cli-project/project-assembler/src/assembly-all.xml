@@ -10,7 +10,6 @@
   <fileSets>
     <fileSet>
         <directory>${project.parent.basedir}/dist</directory>
-        <outputDirectory>clamshell-cli-${project.version}</outputDirectory>
         <includes><include>**</include></includes>
         <fileMode>0644</fileMode>
         <directoryMode>0755</directoryMode>

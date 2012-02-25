@@ -76,28 +76,15 @@
         <module>clamshell-splashscreen</module>
         <module>clamshell-jmx</module>
         <module>clamshell-test</module>
+        <module>project-assembler</module>
     </modules>
     
     <profiles>
         <profile>
-            <id>dist-base-cli</id>
-            <activation>
-                <property>
-                    <name>dist.base</name>
-                    <value>true</value>
-                </property>
-            </activation>
-            <modules>
-                <module>project-assembler</module>
-            </modules>
-        </profile>
-        
-        
-        <profile>
             <id>javadocs</id>
             <activation>
                 <property>
-                    <name>build.javadocs</name>
+                    <name>build.docs</name>
                     <value>true</value>
                 </property>
             </activation>
@@ -130,8 +117,8 @@
             <id>license</id>
             <activation>
                 <property>
-                    <name>build.target</name>
-                    <value>license</value>
+                    <name>build.license</name>
+                    <value>true</value>
                 </property>
             </activation>
             <build>
