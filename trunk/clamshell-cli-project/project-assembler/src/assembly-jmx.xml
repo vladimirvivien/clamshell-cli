@@ -7,11 +7,16 @@
   </formats>
   <fileSets>
     <fileSet>
+        <directory>../src/resources/jmx/</directory>
+        <outputDirectory>.</outputDirectory>
+        <includes><include>cli.config</include></includes>
+    </fileSet>
+    <fileSet>
         <directory>../dist</directory>
         <outputDirectory>.</outputDirectory>
         <includes>
             <include>cli.jar</include>
-            <include>lib/jline-*.jar</include>
+            <include>lib/*</include>
             <include>clilib/*</include>
             <include>plugins/cli-shell-*.jar</include>
             <include>plugins/cli-console-*.jar</include>
