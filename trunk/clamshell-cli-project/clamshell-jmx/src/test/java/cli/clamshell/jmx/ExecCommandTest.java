@@ -75,7 +75,7 @@ public class ExecCommandTest {
         bean.setStringValue("TEST_VALUE");
         TestUtils.registerMBean(agent, bean, TestJmxMBeanMBean.NAME);
         
-        argsMap.put("name", TestJmxMBeanMBean.NAME);
+        argsMap.put(ExecCommand.KEY_ARGS_BEANS, TestJmxMBeanMBean.NAME);
         argsMap.put("get", "StringValue");
         ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);
         
@@ -92,7 +92,7 @@ public class ExecCommandTest {
         TestJmxMBeanMBean bean = new TestJmxMBean();
         TestUtils.registerMBean(agent, bean, TestJmxMBeanMBean.NAME);
         
-        argsMap.put("name", TestJmxMBeanMBean.NAME);
+        argsMap.put(ExecCommand.KEY_ARGS_BEANS, TestJmxMBeanMBean.NAME);
         argsMap.put("set", "StringValue");
         argsMap.put("params", "STRING_VALUE");
         ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);
@@ -110,7 +110,7 @@ public class ExecCommandTest {
         TestJmxMBeanMBean bean = new TestJmxMBean();
         TestUtils.registerMBean(agent, bean, TestJmxMBeanMBean.NAME);
         
-        argsMap.put("name", TestJmxMBeanMBean.NAME);
+        argsMap.put(ExecCommand.KEY_ARGS_BEANS, TestJmxMBeanMBean.NAME);
         argsMap.put("set", "StringValue");
         argsMap.put("op", "exec");
         argsMap.put("params", "STRING_VALUE");
@@ -133,7 +133,7 @@ public class ExecCommandTest {
         bean.setStringValue("THIS_VAL_SHOULD_CHANGE_WHEN_EXEC_IS_CALLED");
         TestUtils.registerMBean(agent, bean, TestJmxMBeanMBean.NAME);
 
-        argsMap.put("name", TestJmxMBeanMBean.NAME);
+        argsMap.put(ExecCommand.KEY_ARGS_BEANS, TestJmxMBeanMBean.NAME);
         argsMap.put("op", "exec");
         ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);
         
@@ -151,7 +151,7 @@ public class ExecCommandTest {
         bean.setStringValue("THIS_VAL_SHOULD_CHANGE_WHEN_EXEC_IS_CALLED");
         TestUtils.registerMBean(agent, bean, TestJmxMBeanMBean.NAME);
 
-        argsMap.put("name", TestJmxMBeanMBean.NAME);
+        argsMap.put(ExecCommand.KEY_ARGS_BEANS, TestJmxMBeanMBean.NAME);
         argsMap.put("op", "exec");
         argsMap.put("params", "EXEC_WITH_PARAM");
         ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);
@@ -171,7 +171,7 @@ public class ExecCommandTest {
         bean.setNumericValue(new Integer(5));
         TestUtils.registerMBean(agent, bean, TestJmxMBeanMBean.NAME);
 
-        argsMap.put("name", TestJmxMBeanMBean.NAME);
+        argsMap.put(ExecCommand.KEY_ARGS_BEANS, TestJmxMBeanMBean.NAME);
         argsMap.put("op", "execWithParams");
         
         //set op params
@@ -197,7 +197,7 @@ public class ExecCommandTest {
         bean.setStringValue("THIS_VAL_SHOULD_CHANGE_WHEN_EXEC_IS_CALLED");
         TestUtils.registerMBean(agent, bean, TestJmxMBeanMBean.NAME);
 
-        argsMap.put("name", TestJmxMBeanMBean.NAME);
+        argsMap.put(ExecCommand.KEY_ARGS_BEANS, TestJmxMBeanMBean.NAME);
         argsMap.put("op", "execWithParam");
         argsMap.put("params", Integer.valueOf("3"));
         ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);
@@ -218,7 +218,7 @@ public class ExecCommandTest {
         bean.setStringValue("RETURN_VALUE");
         TestUtils.registerMBean(agent, bean, TestJmxMBeanMBean.NAME);
 
-        argsMap.put("name", TestJmxMBeanMBean.NAME);
+        argsMap.put(ExecCommand.KEY_ARGS_BEANS, TestJmxMBeanMBean.NAME);
         argsMap.put("op", "retrieveValue");
         ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);
         
@@ -237,7 +237,7 @@ public class ExecCommandTest {
         TestJmxMBeanMBean bean = new TestJmxMBean();
         TestUtils.registerMBean(agent, bean, TestJmxMBeanMBean.NAME);
 
-        argsMap.put("name", TestJmxMBeanMBean.NAME);
+        argsMap.put(ExecCommand.KEY_ARGS_BEANS, TestJmxMBeanMBean.NAME);
         argsMap.put("op", "retrieveValue_BAD_METHOD");
         ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);
         

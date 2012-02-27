@@ -35,25 +35,30 @@ import sun.jvmstat.monitor.MonitoredVm;
  * Using this command, users can connect to a local or remote JVM running the 
  * JMX MBeanServer.  Format
  * 
+ * <pre>
  * <code>connect [
- *     [host:<hosturl>] [username:<username> password:<password>]
+ *     [host:<hosturl>] [user:<username> password:<password>]
  * ] [pid:<procid>]
+ * </pre>
  * 
  * <ul>
  * <li>host: address of host to connect to</li>
- * <li>username: username credential</li>
+ * <li>user: username credential</li>
  * <li>password: password credential</li>
  * <li>pid : connect using JVM pid (from ps command)</li>
  * </ul>
  * 
+ * Will connect to internal JMX platform mbean server if no connection params
+ * are provided.
  * @author vladimir.vivien
  */
 public class ConnectCommand implements Command{
-    private static final String CMD_NAME = "connect";
-    private static final String NAMESPACE = "jmx";
-    private static final String KEY_ARGS_UNAME = "username";
-    private static final String KEY_ARGS_PWD = "password";
-    private static final String KEY_ARGS_PID = "pid";
+    public static final String CMD_NAME = "connect";
+    public static final String NAMESPACE = "jmx";
+    public static final String KEY_ARGS_HOST = "host";
+    public static final String KEY_ARGS_UNAME = "user";
+    public static final String KEY_ARGS_PWD = "password";
+    public static final String KEY_ARGS_PID = "pid";
     
     private Command.Descriptor descriptor = null;
     
@@ -70,19 +75,21 @@ public class ConnectCommand implements Command{
                 }
 
                 public String getDescription() {
-                    return "Connects to local or remote JVM management server.";
+                    return "Connects to local or remote JVM MBean server.";
                 }
 
                 public String getUsage() {
-                    return "connect [options]";
+                    return "connect [pid:<ProcessId> host:<HostUrl> user:<UserName> password:<Password>]";
                 }
 
                 Map<String,String> args;
                 public Map<String, String> getArguments() {
                     if(args != null) return args;
                     args = new HashMap<String,String>();
-                    args.put("host:<hostUrl>", "Host url, default is localhost.");
-                    args.put("pid:<processId>", "Process ID for local vm.");   
+                    args.put(KEY_ARGS_PID   + ":<ProcessId>", "Local process id of JVM to connect to (see 'ps' command)");
+                    args.put(KEY_ARGS_HOST  + ":<HostUrl>", "Connection URL - <HostName>:<Port> or service:jmx:<Protocol>:<Url>");
+                    args.put(KEY_ARGS_UNAME + ":<UserName>", "Username for connection");
+                    args.put(KEY_ARGS_PWD   + ":<Password>", "Password for connection");
                     return args;
                 }
             }

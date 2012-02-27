@@ -40,7 +40,7 @@ import javax.management.ReflectionException;
  * The Exec command lets user invoke methods on specified mbean.
  * The format for the exec command is:
  * <pre>
- * exec name:<objectName or Id> 
+ * exec bean:<MBeanObjectName,MBeanLabel> 
  *      get:<attribName>|[[<attribNameList>]]
  *      set:<attribName>|[[<attribNameList>]]
  *      op:<operationName>|[[<opNameList>]]
@@ -49,13 +49,13 @@ import javax.management.ReflectionException;
  * @author vladimir.vivien
  */
 public class ExecCommand implements Command{
-   private static final String CMD_NAME         = "exec";
-    private static final String NAMESPACE       = "jmx";
-    private static final String KEY_ARGS_NAME   = "name";
-    private static final String KEY_ARGS_GET    = "get";
-    private static final String KEY_ARGS_SET    = "set";
-    private static final String KEY_ARGS_OP     = "op";
-    private static final String KEY_ARGS_PARAMS = "params";
+   public static final String CMD_NAME         = "exec";
+    public static final String NAMESPACE       = "jmx";
+    public static final String KEY_ARGS_BEANS   = "beans";
+    public static final String KEY_ARGS_GET    = "get";
+    public static final String KEY_ARGS_SET    = "set";
+    public static final String KEY_ARGS_OP     = "op";
+    public static final String KEY_ARGS_PARAMS = "params";
     
     private Command.Descriptor descriptor = null;
  
@@ -72,24 +72,26 @@ public class ExecCommand implements Command{
                 }
 
                 public String getDescription() {
-                    return "Execute MBean attribute getters/setters and operations.";
+                    return "Execute MBean operations and getter/setter attributes.";
                 }
 
                 public String getUsage() {
-                    return "exec name:<ObjectNamePattern> [get:<AttributeName>] "
-                            + "[set:<AttributeName>] [op:<OperationName>] "
-                            + "[params:<ParamValue>|[<ListOfParamValue>]]";
+                    return "exec beans:<ObjectNamePattern,MBeanLabel> [get:<AttributeName>"
+                            + "set:<AttributeName> op:<OperationName> "
+                            + "params:<ParamList>]";
                 }
 
                 Map<String,String> args;
                 public Map<String, String> getArguments() {
                     if(args != null) return args;
                     args = new HashMap<String,String>();
-                    args.put("name:<ObjectNamePattern>", "An MBean ObjectName or name pattern.");
-                    args.put("get:<AttributeName>", "An attribute to retrieve.");  
-                    args.put("set:<AttributeName>", "Name of attribute to set (must provide params:).");
-                    args.put("op:<OperationName>", "Name of an MBean operation to invoke.");
-                    args.put("params:<ParamValue>|[<ListOfParamValue>]", "One or more parameter values used to attribute setter or operation.");
+                    args.put("bean:<MBeanObjectNamePattern>", "The ObjectName name pattern for bean(s)");
+                    args.put("bean:<MBeanLabel>", "A mbean label used to identify MBean.");
+                    args.put("get:<AttributeName>", "An attribute to retrieve");  
+                    args.put("set:<AttributeName>", "Name of attribute to set (must provide 'params:')");
+                    args.put("op:<OperationName>", "Name of an operation to invoke");
+                    args.put("params:<ParamValue>", "One parameter value.");
+                    args.put("params:[ParamList]", "A list of two or more parameter values");
                     return args;
                 }
             }
@@ -106,7 +108,7 @@ public class ExecCommand implements Command{
         Management.verifyServerConnection(ctx);
         MBeanServerConnection server = (MBeanServerConnection) ctx.getValue(Management.KEY_JMX_MBEANSERVER);
 
-        Object nameParam = (argsMap  != null) ? argsMap.get(KEY_ARGS_NAME) : null;
+        Object nameParam = (argsMap  != null) ? argsMap.get(KEY_ARGS_BEANS) : null;
         Object getParam  = (argsMap  != null) ? argsMap.get(KEY_ARGS_GET) : null;
         Object setParam  = (argsMap  != null) ? argsMap.get(KEY_ARGS_SET) : null;
         Object opParam   = (argsMap  != null) ? argsMap.get(KEY_ARGS_OP) : null;
@@ -115,13 +117,13 @@ public class ExecCommand implements Command{
         // valdate name param
         if(nameParam == null){
             throw new ShellException("Command \"exec\" "
-                    + "requires the 'name:' parameter to specify "
-                    + "an ObjectName expression (see help).");
+                    + "requires the '" +KEY_ARGS_BEANS+ ":' parameter to specify "
+                    + "an mbean ObjectName or label (see help).");
         }
 
         if (opParam != null && setParam != null) {
             throw new ShellException("You cannot specify both 'op:' "
-                    + "and 'set:' parameters at the same time (see help).");
+                    + "and 'set:' at the same time (see help).");
         }
    
         

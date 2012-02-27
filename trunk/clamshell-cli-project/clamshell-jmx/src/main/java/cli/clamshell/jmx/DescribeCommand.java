@@ -33,16 +33,22 @@ import javax.management.ObjectName;
  */
 
 /**
- * This implementation of Command describes an MBean instance from information
- * pulled from the MBeanInfo.
+ * This Command describes an MBean instance using MBean Info.
+ * Format:
+ * <pre>
+ * desc 
+ *     bean:<ObectName>|<BeanLabel> 
+ *     [attribs:*|<attributeList>]
+ *     [ops:*|<OperationList>]
+ * </pre>
  * @author vvivien
  */
 public class DescribeCommand implements Command{
-    private static final String CMD_NAME = "desc";
-    private static final String NAMESPACE = "jmx";
-    private static final String KEY_ARGS_NAME = "name";
-    private static final String KEY_ARGS_ATTRIBS   = "attribs";
-    private static final String KEY_ARGS_OPS   = "ops";
+    public static final String CMD_NAME = "desc";
+    public static final String NAMESPACE = "jmx";
+    public static final String KEY_ARGS_BEAN = "bean";
+    public static final String KEY_ARGS_ATTRIBS = "attribs";
+    public static final String KEY_ARGS_OPS   = "ops";
 
     private Command.Descriptor descriptor = null;
     public Descriptor getDescriptor() {
@@ -58,20 +64,26 @@ public class DescribeCommand implements Command{
                 }
 
                 public String getDescription() {
-                    return "Prints description for specified mbean(s).";
+                    return "Prints description for specified mbean.";
                 }
 
                 public String getUsage() {
-                    return "desc name:<ObjectName> [attribs:<attributes> ops:<operations>]";
+                    return "desc bean:<MBeanObjectName or MBeanLabel> [attribs:<attributes> ops:<operations>] ('help desc' for detail).";
                 }
 
-                Map<String,String> args;
+                Map<String,String> args = null;
                 public Map<String, String> getArguments() {
                     if(args != null) return args;
                     args = new HashMap<String,String>();
-                    args.put("name:<ObjectName>", "ObjectName expression for beans.");
-                    args.put("attribs:<attributes>", "Specify attribute info to print.");   
-                    args.put("ops:<operations>", "Specify operation info to print."); 
+                    args.put(KEY_ARGS_BEAN      + ":<MbeanObjectName>", "The ObjectName of the MBean to describe");
+                    args.put(KEY_ARGS_BEAN      + ":<MBeanLabel>","The bean label of the MBean to describel (see command Bean or List)");
+                    args.put(KEY_ARGS_ATTRIBS   + ":*", "Describes all attributes");
+                    args.put(KEY_ARGS_ATTRIBS   + ":<attribName>", "Name of a single attribute to describe");
+                    args.put(KEY_ARGS_ATTRIBS   + ":[attribList]", "A list of one or more attributes to describe");
+                    args.put(KEY_ARGS_OPS       + ":*", "Describes all operations"); 
+                    args.put(KEY_ARGS_OPS       + ":<operationName>", "Name of a single operation to describe");
+                    args.put(KEY_ARGS_OPS       + ":[operationList]", "A list of one or more operations to describe");
+                    
                     return args;
                 }
             }
@@ -87,7 +99,7 @@ public class DescribeCommand implements Command{
         Management.verifyServerConnection(ctx);
         MBeanServerConnection server = (MBeanServerConnection)ctx.getValue(Management.KEY_JMX_MBEANSERVER);        
         
-        String mbeanParam = (argsMap  != null) ? (String)argsMap.get(KEY_ARGS_NAME) : null;
+        String mbeanParam = (argsMap  != null) ? (String)argsMap.get(KEY_ARGS_BEAN) : null;
         Object attribsParam = (argsMap  != null) ? argsMap.get(KEY_ARGS_ATTRIBS) : null;
         Object opsParam = (argsMap != null) ? argsMap.get(KEY_ARGS_OPS) : null;
         

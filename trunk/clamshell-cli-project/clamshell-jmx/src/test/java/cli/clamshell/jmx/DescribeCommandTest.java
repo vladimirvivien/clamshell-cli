@@ -81,7 +81,7 @@ public class DescribeCommandTest {
     @Test
     public void testCommandWithBeanNameExpression() throws Exception{
         TestUtils.setupJmxConnection(ctx);
-        argsMap.put("name", "java.lang:type=*");
+        argsMap.put("bean", "java.lang:type=*");
         ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);
         try{
             cmd.execute(ctx);
@@ -93,7 +93,7 @@ public class DescribeCommandTest {
     @Test
     public void testCommandWithBadBeanNameExpression() throws Exception{
         TestUtils.setupJmxConnection(ctx);
-        argsMap.put("name", "badDomain:type=badType");
+        argsMap.put("bean", "badDomain:type=badType");
         ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);
         try{
             cmd.execute(ctx);
@@ -112,7 +112,7 @@ public class DescribeCommandTest {
         ObjectInstance beanInstance = mbeanMap.get(Management.KEY_DEFAULT_MBEANS);
         mbeanMap.put("runtimeBean", beanInstance);
         
-        argsMap.put("name", "runtimeBean");
+        argsMap.put("bean", "runtimeBean");
         ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);
         try{
             cmd.execute(ctx);
