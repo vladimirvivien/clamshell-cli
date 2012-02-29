@@ -38,7 +38,7 @@ public class JmxSplashScreen implements SplashScreen{
             .append("| ##  | ##  | ## | ## | ##    >##  ##   | ##    ##  | ##  | ##").append(String.format("%n"))
             .append("|  ######/  | ## | ## | ##   /##/\\  ##  |  ######/  | ##  | ##").append(String.format("%n"))
             .append(" \\______/   |__/ |__/ |__/  |__/  \\__/   \\______/   |__/  |__/").append(String.format("%n%n"))
-            .append("A JMX Command-Line Tool ").append(String.format("%n"))
+            .append("A command-line tool for JMX").append(String.format("%n"))
             .append("Powered by Clamshell-Cli framework ").append(String.format("%n"))
             .append("http://code.google.com/p/clamshell-cli/").append(String.format("%n%n"))
     

@@ -47,10 +47,10 @@ import javax.management.ObjectName;
  * @author vvivien
  */
 public class MBeanCommand implements Command{
-    private static final String CMD_NAME = "mbean";
-    private static final String NAMESPACE = "jmx";
-    private static final String KEY_ARGS_NAME = "name";
-    private static final String KEY_ARGS_AS   = "as";
+    public static final String CMD_NAME = "mbean";
+    public static final String NAMESPACE = "jmx";
+    public static final String KEY_ARGS_BEAN = "bean";
+    public static final String KEY_ARGS_AS   = "as";
     
     private Command.Descriptor descriptor = null;
     
@@ -67,20 +67,20 @@ public class MBeanCommand implements Command{
                 }
 
                 public String getDescription() {
-                    return "Sets an identifier for an MBean "
-                            + "to be used in other commands.";
+                    return "Creates a label for identifying an MBean";
                 }
 
                 public String getUsage() {
-                    return "mbean name:<ObjectName> [as:<identifier>]";
+                    return String.format("mbean bean:<ObjectName> [as:<Label>]%n"
+                            + "If label not provided, the bean will be set as default.");
                 }
 
                 Map<String,String> args;
                 public Map<String, String> getArguments() {
                     if(args != null) return args;
                     args = new HashMap<String,String>();
-                    args.put("name:<ObjectName>", "ObjectName for bean.");
-                    args.put("as:<identifier>", "A user-provided identifier.");   
+                    args.put(KEY_ARGS_BEAN  + ":<ObjectName>", "The object name of the MBean to be labeled");
+                    args.put(KEY_ARGS_AS     + ":<Label>", "An indentifier used to refer to the MBean");   
                     return args;
                 }
             }
@@ -96,13 +96,13 @@ public class MBeanCommand implements Command{
         Management.verifyServerConnection(ctx);
         MBeanServerConnection server = (MBeanServerConnection)ctx.getValue(Management.KEY_JMX_MBEANSERVER);        
         
-        String nameParam = (argsMap != null) ? (String)argsMap.get(KEY_ARGS_NAME) : null;
+        String nameParam = (argsMap != null) ? (String)argsMap.get(KEY_ARGS_BEAN) : null;
         String asParam = (argsMap != null) ? (String)argsMap.get(KEY_ARGS_AS) : null;
 
         // valdate name param
         if(nameParam == null){
             throw new ShellException("Command \"mbean\" "
-                    + "requires the 'name:' parameter to set the MBean (see help). ");
+                    + "requires the 'bean:' (see help). ");
         }
         
         ObjectInstance obj = null;

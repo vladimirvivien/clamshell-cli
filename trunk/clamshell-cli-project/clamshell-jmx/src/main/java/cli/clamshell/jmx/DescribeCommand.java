@@ -5,7 +5,7 @@ import cli.clamshell.api.Command;
 import cli.clamshell.api.Context;
 import cli.clamshell.api.IOConsole;
 import cli.clamshell.commons.ShellException;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.management.MBeanAttributeInfo;
@@ -74,9 +74,9 @@ public class DescribeCommand implements Command{
                 Map<String,String> args = null;
                 public Map<String, String> getArguments() {
                     if(args != null) return args;
-                    args = new HashMap<String,String>();
-                    args.put(KEY_ARGS_BEAN      + ":<MbeanObjectName>", "The ObjectName of the MBean to describe");
-                    args.put(KEY_ARGS_BEAN      + ":<MBeanLabel>","The bean label of the MBean to describel (see command Bean or List)");
+                    args = new LinkedHashMap<String,String>();
+                    args.put(KEY_ARGS_BEAN      + ":<NamePattern>", "The MBean object name pattern to describe");
+                    args.put(KEY_ARGS_BEAN      + ":<MBeanLabel>","A bean label that refers to an MBean");
                     args.put(KEY_ARGS_ATTRIBS   + ":*", "Describes all attributes");
                     args.put(KEY_ARGS_ATTRIBS   + ":<attribName>", "Name of a single attribute to describe");
                     args.put(KEY_ARGS_ATTRIBS   + ":[attribList]", "A list of one or more attributes to describe");
@@ -103,9 +103,9 @@ public class DescribeCommand implements Command{
         Object attribsParam = (argsMap  != null) ? argsMap.get(KEY_ARGS_ATTRIBS) : null;
         Object opsParam = (argsMap != null) ? argsMap.get(KEY_ARGS_OPS) : null;
         
-        ObjectInstance[] objs = getObjectInstances(ctx, mbeanParam);
+        ObjectInstance[] objs = Management.findObjectInstances(ctx, mbeanParam);
         if(objs == null || objs.length == 0){
-            throw new ShellException(String.format("No beans found with name expression %s.",mbeanParam));
+            throw new ShellException(String.format("No MBeans found %s.",mbeanParam));
         }
         
         try{
@@ -172,28 +172,7 @@ public class DescribeCommand implements Command{
     public void plug(Context plug) {
         //throw new UnsupportedOperationException("Not supported yet.");
     }
-    
-    private ObjectInstance[] getObjectInstances(Context ctx, String mbeanParam) throws ShellException {
-        Map<String, ObjectInstance> map = (Map<String, ObjectInstance>) ctx.getValue(Management.KEY_MBEANS_MAP);
-
-        if (mbeanParam == null) {
-            if (map == null || map.get(Management.KEY_DEFAULT_MBEANS) == null) {
-                throw new ShellException(String.format("You must specify the beans to use for this command.%n"
-                        + "Use the 'name' parameter or an MBean with 'mbean' command (see help)."));
-            }
-            return new ObjectInstance[]{map.get(Management.KEY_DEFAULT_MBEANS)};
-        } else {
-            ObjectInstance[] objs = null;
-            if(map != null && map.get(mbeanParam) != null){
-                objs = new ObjectInstance[]{map.get(mbeanParam)};
-            }else{
-                MBeanServerConnection conn = (MBeanServerConnection) ctx.getValue(Management.KEY_JMX_MBEANSERVER);
-                objs = Management.getObjectInstances(conn, mbeanParam);
-            }
-            return objs;
-        }
-    }
-    
+        
     private void printObjectInstanceInfo(Context ctx, ObjectInstance obj) throws Exception{
         IOConsole c = ctx.getIoConsole();
         MBeanServerConnection server = (MBeanServerConnection)ctx.getValue(Management.KEY_JMX_MBEANSERVER); 

@@ -61,7 +61,7 @@ public class PsCommandTest {
         assert opt.equals("q");
         
         Map<String,Object> args = new HashMap<String,Object>();
-        args.put("o", "v");
+        args.put(PsCommand.KEY_ARGS_OPTION, "v");
         
         opt = cmd.getOptions(args);
         assert opt.equals("v");

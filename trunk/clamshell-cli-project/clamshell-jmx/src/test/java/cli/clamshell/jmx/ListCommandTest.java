@@ -41,9 +41,10 @@ public class ListCommandTest {
     ListCommand cmd;
     Map<String,Object> argsMap;
     JmxAgent agent;
-
+    
     public ListCommandTest() {
         cmd = new ListCommand();
+        cmd.plug(ctx);
         argsMap = new HashMap<String,Object>();
     }
 
@@ -72,7 +73,7 @@ public class ListCommandTest {
     @Test
     public void testCommandWithPatternParam() throws Exception {
         TestUtils.setupJmxConnection(ctx);
-        argsMap.put("pattern", "java.lang:type=*");
+        argsMap.put(ListCommand.KEY_ARGS_FILTER, "java.lang:type=*");
         ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);
         
         try{
@@ -83,15 +84,15 @@ public class ListCommandTest {
     }
     
     @Test
-    public void testCommandWithPatternAndSetIdParams() throws Exception {
+    public void testCommandWithPatternAndLabels() throws Exception {
         TestUtils.setupJmxConnection(ctx);
         String namePattern = "java.lang:type=*";
         
         MBeanServerConnection conn = (MBeanServerConnection) ctx.getValue(Management.KEY_JMX_MBEANSERVER);
         Set<ObjectInstance> objs = conn.queryMBeans(new ObjectName(namePattern), null);
         
-        argsMap.put("pattern", namePattern);
-        argsMap.put("setid", "true");
+        argsMap.put(ListCommand.KEY_ARGS_FILTER, namePattern);
+        argsMap.put(ListCommand.KEY_ARGS_LABEL, "true");
         ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);
         
         try{
@@ -104,14 +105,14 @@ public class ListCommandTest {
     }
     
     @Test
-    public void testCommandWithMultiplePatterns() throws Exception {
+    public void testCommandWithMultipleFilters() throws Exception {
         TestUtils.setupJmxConnection(ctx);
         
         List<String> arr = new ArrayList<String>(2);
         arr.add("java.lang:type=*");
         arr.add("java.util.logging:*");
-        argsMap.put("pattern", arr);
-        argsMap.put("setid", "true");
+        argsMap.put(ListCommand.KEY_ARGS_FILTER, arr);
+        argsMap.put(ListCommand.KEY_ARGS_LABEL, "true");
         ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);
         
         try{

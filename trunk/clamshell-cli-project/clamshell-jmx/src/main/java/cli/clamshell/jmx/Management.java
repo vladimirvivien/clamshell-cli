@@ -259,6 +259,36 @@ public final class Management {
     }
     
     /**
+     * Look for object instances in cache first.  Then, if none is found,
+     * load object instances from mbean server.
+     * @param ctx - Context
+     * @param name - the ObjectName or the label used for caching the instance 
+     * @return - one or more instances that may match the name
+     * @throws ShellException 
+     */
+    public static ObjectInstance[] findObjectInstances(Context ctx, String name) throws ShellException {
+        Map<String, ObjectInstance> map = (Map<String, ObjectInstance>) ctx.getValue(Management.KEY_MBEANS_MAP);
+
+        if (name == null) {
+            if (map == null || map.get(Management.KEY_DEFAULT_MBEANS) == null) {
+                throw new ShellException(String.format("You must specify MBean(s) for command or "
+                        + "set a default MBean using 'mbean' command (see help)."));
+            }
+            return new ObjectInstance[]{map.get(Management.KEY_DEFAULT_MBEANS)};
+        } else {
+            ObjectInstance[] objs = null;
+            if(map != null && map.get(name) != null){
+                objs = new ObjectInstance[]{map.get(name)};
+            }else{
+                MBeanServerConnection conn = (MBeanServerConnection) ctx.getValue(Management.KEY_JMX_MBEANSERVER);
+                objs = Management.getObjectInstances(conn, name);
+            }
+            return objs;
+        }
+    }
+
+    
+    /**
      * A domain class to cache information for discovered local JVM instances.
      * 
      */
@@ -300,4 +330,5 @@ public final class Management {
             return monitoredVm;
         }     
     }
+    
 }

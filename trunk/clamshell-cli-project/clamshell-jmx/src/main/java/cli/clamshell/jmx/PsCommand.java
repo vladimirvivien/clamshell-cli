@@ -16,17 +16,13 @@
 package cli.clamshell.jmx;
 
 import cli.clamshell.api.Command;
-import cli.clamshell.api.Configurator;
 import cli.clamshell.api.Context;
 import cli.clamshell.api.IOConsole;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 import sun.jvmstat.monitor.HostIdentifier;
-import sun.jvmstat.monitor.MonitoredHost;
 import sun.jvmstat.monitor.MonitoredVm;
 import sun.jvmstat.monitor.MonitoredVmUtil;
-import sun.management.ConnectorAddressLink;
 
 /**
  * This is an implementation of the Command interface to handle JMX command-line
@@ -38,10 +34,12 @@ import sun.management.ConnectorAddressLink;
  * @author vladimir.vivien
  */
 public class PsCommand implements Command{
-    private static final String KEY_ARGS_OPTIONS = "o";
+    public static final String CMD_NAME  = "ps";
+    public static final String NAMESPACE = "jmx";
+    public static final String KEY_ARGS_HOST = "host";
+    public static final String KEY_ARGS_OPTION = "option";
     
-    private static final String NAMESPACE = "jmx";
-    private static final String CMD_NAME  = "ps";
+    
     private Command.Descriptor descriptor;
     private HostIdentifier hostIdentifier;
             
@@ -59,35 +57,20 @@ public class PsCommand implements Command{
                 }
 
                 public String getDescription() {
-                    return "Displays the list of running JVM processes.";
+                    return "Displays a list of running JVM processes (similar to jps tool)";
                 }
 
                 public String getUsage() {
-                    StringBuilder result = new StringBuilder();
-                    result
-                        .append(Configurator.VALUE_LINE_SEP)
-                        .append("ps [options]").append(Configurator.VALUE_LINE_SEP);
-
-                    for(Map.Entry<String,String> entry : getArguments().entrySet()){
-                        result.append(
-                            String.format("%n%1$15s %2$2s %3$s", 
-                                entry.getKey(), 
-                                " ", 
-                                entry.getValue()
-                            )
-                        );
-                    }
-
-                    return result.toString();
+                    return "ps [host:<HostUrl> option:<v|q>]";
                 }
 
                 Map<String,String> args;
                 public Map<String, String> getArguments() {
                     if(args != null) return args;
-                    args = new HashMap<String,String>();
-                    args.put("host:<hostUrl>", "Host url, default is localhost.");
-                    args.put("o:v", "Option for verbose output");
-                    args.put("o:q", "Option for quitter output (default).");
+                    args = new LinkedHashMap<String,String>();
+                    args.put(KEY_ARGS_HOST      + ":<hostUrl>", "Host url, default is localhost");
+                    args.put(KEY_ARGS_OPTION    + ":v", "Option for verbose output");
+                    args.put(KEY_ARGS_OPTION    + ":q", "Option for quitter output (default)");
                     return args;
                 }
             }
@@ -123,8 +106,8 @@ public class PsCommand implements Command{
     }
     
     protected String getOptions(Map<String,Object> argsMap){
-        return (argsMap != null && argsMap.get(KEY_ARGS_OPTIONS) != null) ?
-            (String)argsMap.get(KEY_ARGS_OPTIONS) : "q";
+        return (argsMap != null && argsMap.get(KEY_ARGS_OPTION) != null) ?
+            (String)argsMap.get(KEY_ARGS_OPTION) : "q";
     }
         
     private String formatVmInfo(MonitoredVm vm, String options) throws Exception {

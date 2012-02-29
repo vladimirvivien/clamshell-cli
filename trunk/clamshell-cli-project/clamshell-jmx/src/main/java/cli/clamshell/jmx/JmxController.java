@@ -52,7 +52,7 @@ public class JmxController  extends AnInputController {
     public boolean handle(Context ctx) {
         String cmdLine = (String)ctx.getValue(Context.KEY_COMMAND_LINE_INPUT);
         boolean handled = false;
-       
+               
         if(cmdLine != null && !cmdLine.trim().isEmpty()){
             String[] tokens = cmdLine.split("\\s+");
             String cmdName = tokens[0];

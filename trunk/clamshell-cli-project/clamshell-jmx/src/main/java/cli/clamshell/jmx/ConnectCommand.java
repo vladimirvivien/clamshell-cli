@@ -23,6 +23,7 @@ import cli.clamshell.jmx.Management.VmInfo;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.management.MBeanServerConnection;
 import javax.management.remote.JMXConnector;
@@ -85,9 +86,9 @@ public class ConnectCommand implements Command{
                 Map<String,String> args;
                 public Map<String, String> getArguments() {
                     if(args != null) return args;
-                    args = new HashMap<String,String>();
+                    args = new LinkedHashMap<String,String>();
                     args.put(KEY_ARGS_PID   + ":<ProcessId>", "Local process id of JVM to connect to (see 'ps' command)");
-                    args.put(KEY_ARGS_HOST  + ":<HostUrl>", "Connection URL - <HostName>:<Port> or service:jmx:<Protocol>:<Url>");
+                    args.put(KEY_ARGS_HOST  + ":<HostUrl>", "Connection URL as <hostname>:<port> or service:jmx:<protocol>:<url>");
                     args.put(KEY_ARGS_UNAME + ":<UserName>", "Username for connection");
                     args.put(KEY_ARGS_PWD   + ":<Password>", "Password for connection");
                     return args;

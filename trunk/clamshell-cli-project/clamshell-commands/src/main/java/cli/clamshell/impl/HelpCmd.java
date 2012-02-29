@@ -22,6 +22,7 @@ package cli.clamshell.impl;
 import cli.clamshell.api.Command;
 import cli.clamshell.api.Context;
 import cli.clamshell.api.IOConsole;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +89,7 @@ public class HelpCmd implements Command{
         }else{
             printAllHelp(ctx);
         }
+        ctx.getIoConsole().writeOutput(String.format("%n%n"));
         return null;
     }
 
@@ -103,7 +105,7 @@ public class HelpCmd implements Command{
             if(cmd != null){
                 printCommandHelp(ctx, cmd);
             }else{
-                ctx.getIoConsole().writeOutput(String.format("%nHelp for Command [%s] cannot not found.%n%n", cmdName));
+                ctx.getIoConsole().writeOutput(String.format("%nHelp for Command [%s] cannot not found.", cmdName));
             }
         }
     }
@@ -111,9 +113,25 @@ public class HelpCmd implements Command{
     private void printCommandHelp(Context ctx, Command cmd){
         if(cmd != null && cmd.getDescriptor() != null){
             ctx.getIoConsole().writeOutput(String.format("%nCommand: %s - %s%n", cmd.getDescriptor().getName(), cmd.getDescriptor().getDescription()));
-            ctx.getIoConsole().writeOutput(String.format("Usage: %s%n%n", cmd.getDescriptor().getUsage()));            
+            ctx.getIoConsole().writeOutput(String.format("Usage: %s", cmd.getDescriptor().getUsage()));
+            printCommandParamsDetail(ctx, cmd);
         }else{
-            ctx.getIoConsole().writeOutput(String.format("%nUnable to display help for command.%n%n"));
+            ctx.getIoConsole().writeOutput(String.format("%nUnable to display help for command."));
+        }
+    }
+    
+    private void printCommandParamsDetail(Context ctx, Command cmd){
+        Command.Descriptor desc = cmd.getDescriptor();
+        if(desc == null || desc.getArguments() == null) return;
+        IOConsole c = ctx.getIoConsole();
+        c.writeOutput(String.format("%nOptions:"));
+        c.writeOutput(String.format("%n--------"));
+        for(Map.Entry<String,String> entry : desc.getArguments().entrySet()){
+            c.writeOutput(String.format(
+                "%n%1$25s\t%2$s", 
+                entry.getKey(), 
+                entry.getValue()
+            ));            
         }
     }
     
@@ -130,7 +148,6 @@ public class HelpCmd implements Command{
                 cmd.getDescriptor().getDescription()
             ));
         }
-        c.writeOutput(String.format("%n%n"));
     }
     
 }

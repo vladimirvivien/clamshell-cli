@@ -21,6 +21,7 @@ import cli.clamshell.api.IOConsole;
 import cli.clamshell.commons.ShellException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,18 +38,18 @@ import javax.management.ObjectName;
  * <p>
  * The List command format is:
  *<pre>
- * list [pattern:"java.lang:* | ["pattern1","pattern2", "pattern3,...,patternN]] [setid:true|false]"
+ * list [filter:<NamePatter> | ["pattern1","pattern2",...,patternN] label:<true|false>]"
  *</pre>
  * </p>
  * 
  * @author vladimir.vivien
  */
 public class ListCommand implements Command{
-    private static final String CMD_NAME = "list";
-    private static final String NAMESPACE = "jmx";
-    private static final String KEY_ARGS_PATTERN = "pattern";
-    private static final String KEY_ARGS_SETID = "setid";
-    private Command.Descriptor descriptor = null;
+    public static final String CMD_NAME = "list";
+    public static final String NAMESPACE = "jmx";
+    public static final String KEY_ARGS_FILTER = "filter";
+    public static final String KEY_ARGS_LABEL = "label";
+    public Command.Descriptor descriptor = null;
     
     public Descriptor getDescriptor() {
         return (descriptor != null ) ? descriptor : (
@@ -63,19 +64,20 @@ public class ListCommand implements Command{
                 }
 
                 public String getDescription() {
-                    return "Lists registered JMX MBeans.";
+                    return "Lists JMX MBeans.";
                 }
 
                 public String getUsage() {
-                    return "list [pattern:<namePatter>|[<namePatternList>]] [setid:<true|false>]";
+                    return "list [filter:<NamePatterns> label:<true|false>]";
                 }
 
                 Map<String,String> args;
                 public Map<String, String> getArguments() {
                     if(args != null) return args;
-                    args = new HashMap<String,String>();
-                    args.put("pattern", "One or more ObjectName pattern used as filter.");
-                    args.put("setid", "Assigns identifiers to each bean in list that can be used in other commands.");   
+                    args = new LinkedHashMap<String,String>();
+                    args.put(KEY_ARGS_FILTER +":<NamePattern>", "An MBean object name pattern to filter list");
+                    args.put(KEY_ARGS_FILTER +":[NamePatternList]", "One or more MBean object name patterns to filter list");
+                    args.put(KEY_ARGS_LABEL +":<true|false>", "Assigns a label to beans to be used as identifiers");   
                     return args;
                 }
             }
@@ -86,19 +88,18 @@ public class ListCommand implements Command{
         IOConsole c = ctx.getIoConsole();
         Map<String,Object> argsMap = (Map<String,Object>) ctx.getValue(Context.KEY_COMMAND_LINE_ARGS);
         Map<String,ObjectInstance> mbeanMap = (Map<String,ObjectInstance>) ctx.getValue(Management.KEY_MBEANS_MAP);
-                
         // validate connection
         Management.verifyServerConnection(ctx);
         MBeanServerConnection server = (MBeanServerConnection)ctx.getValue(Management.KEY_JMX_MBEANSERVER);
                 
-        Object patternParam = (argsMap  != null) ? argsMap.get(KEY_ARGS_PATTERN) : null;
-        Object setidParam = (argsMap != null) ? argsMap.get(KEY_ARGS_SETID) : null;
-        Boolean setid = Boolean.FALSE;
-        if(setidParam instanceof String){
-            setid = Boolean.valueOf((String)setidParam);
+        Object patternParam = (argsMap  != null) ? argsMap.get(KEY_ARGS_FILTER) : null;
+        Object labelParam = (argsMap != null) ? argsMap.get(KEY_ARGS_LABEL) : null;
+        Boolean setLabel = Boolean.FALSE;
+        if(labelParam instanceof String){
+            setLabel = Boolean.valueOf((String)labelParam);
         }
-        if(setidParam instanceof Boolean){
-            setid = (Boolean)setidParam;
+        if(labelParam instanceof Boolean){
+            setLabel = (Boolean)labelParam;
         }
        
         Set<ObjectInstance> objs = null;
@@ -132,7 +133,7 @@ public class ListCommand implements Command{
         // print it all
         long counter = 0;
         for (ObjectInstance obj : objs) {
-            if (setid) {
+            if (setLabel) {
                 String beanId = String.format("$%d", counter);
                 mbeanMap.put(beanId, obj);
                 c.writeOutput(getInstanceDesc(obj, true, beanId));
@@ -150,7 +151,10 @@ public class ListCommand implements Command{
     }
 
     public void plug(Context plug) {
-        //throw new UnsupportedOperationException("Not supported yet.");
+        Map<String,ObjectInstance> mbeanMap = (Map<String,ObjectInstance>) plug.getValue(Management.KEY_MBEANS_MAP);
+        if(mbeanMap == null){
+            plug.putValue(Management.KEY_MBEANS_MAP, new HashMap<String,ObjectInstance>());
+        }
     }
     
     private String getInstanceDesc(ObjectInstance obj, boolean setId, String id) {

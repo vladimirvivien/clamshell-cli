@@ -25,6 +25,8 @@ public interface TestJmxMBeanMBean {
     public String getStringValue();
     public Integer getNumericValue();
     public void setNumericValue(Integer val);
+    public void setBooleanValue(boolean val);
+    public boolean getBooleanValue();
     
     public void exec();
     public void exec(String val);

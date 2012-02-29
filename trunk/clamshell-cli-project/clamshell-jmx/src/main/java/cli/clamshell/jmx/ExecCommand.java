@@ -22,7 +22,7 @@ import cli.clamshell.commons.ShellException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.management.Attribute;
@@ -51,7 +51,7 @@ import javax.management.ReflectionException;
 public class ExecCommand implements Command{
    public static final String CMD_NAME         = "exec";
     public static final String NAMESPACE       = "jmx";
-    public static final String KEY_ARGS_BEANS   = "beans";
+    public static final String KEY_ARGS_BEAN   = "bean";
     public static final String KEY_ARGS_GET    = "get";
     public static final String KEY_ARGS_SET    = "set";
     public static final String KEY_ARGS_OP     = "op";
@@ -76,7 +76,7 @@ public class ExecCommand implements Command{
                 }
 
                 public String getUsage() {
-                    return "exec beans:<ObjectNamePattern,MBeanLabel> [get:<AttributeName>"
+                    return "exec bean:<MBeanNamePattern> [get:<AttributeName> "
                             + "set:<AttributeName> op:<OperationName> "
                             + "params:<ParamList>]";
                 }
@@ -84,14 +84,14 @@ public class ExecCommand implements Command{
                 Map<String,String> args;
                 public Map<String, String> getArguments() {
                     if(args != null) return args;
-                    args = new HashMap<String,String>();
-                    args.put("bean:<MBeanObjectNamePattern>", "The ObjectName name pattern for bean(s)");
-                    args.put("bean:<MBeanLabel>", "A mbean label used to identify MBean.");
-                    args.put("get:<AttributeName>", "An attribute to retrieve");  
-                    args.put("set:<AttributeName>", "Name of attribute to set (must provide 'params:')");
-                    args.put("op:<OperationName>", "Name of an operation to invoke");
-                    args.put("params:<ParamValue>", "One parameter value.");
-                    args.put("params:[ParamList]", "A list of two or more parameter values");
+                    args = new LinkedHashMap<String,String>();
+                    args.put(KEY_ARGS_BEAN      + ":<NamePattern>", "The object name pattern for the bean(s)");
+                    args.put(KEY_ARGS_BEAN      + ":<MBeanLabel>", "A bean label that refers to an MBean.");
+                    args.put(KEY_ARGS_GET       + ":<AttributeName>", "An attribute to retrieve");  
+                    args.put(KEY_ARGS_SET       + ":<AttributeName>", "Name of attribute to set (use 'params:' for value)");
+                    args.put(KEY_ARGS_OP        + ":<OperationName>", "Name of an operation to invoke");
+                    args.put(KEY_ARGS_PARAMS    + ":<ParamValue>", "A parameter value used for operation or setter");
+                    args.put(KEY_ARGS_PARAMS    + ":[ParamList]", "A list of two or more parameter values used for operation or setter");
                     return args;
                 }
             }
@@ -108,97 +108,85 @@ public class ExecCommand implements Command{
         Management.verifyServerConnection(ctx);
         MBeanServerConnection server = (MBeanServerConnection) ctx.getValue(Management.KEY_JMX_MBEANSERVER);
 
-        Object nameParam = (argsMap  != null) ? argsMap.get(KEY_ARGS_BEANS) : null;
+        Object mbeanParam = (argsMap  != null) ? argsMap.get(KEY_ARGS_BEAN) : null;
         Object getParam  = (argsMap  != null) ? argsMap.get(KEY_ARGS_GET) : null;
         Object setParam  = (argsMap  != null) ? argsMap.get(KEY_ARGS_SET) : null;
         Object opParam   = (argsMap  != null) ? argsMap.get(KEY_ARGS_OP) : null;
         Object params    = (argsMap  != null) ? argsMap.get(KEY_ARGS_PARAMS) : null;
         
-        // valdate name param
-        if(nameParam == null){
-            throw new ShellException("Command \"exec\" "
-                    + "requires the '" +KEY_ARGS_BEANS+ ":' parameter to specify "
-                    + "an mbean ObjectName or label (see help).");
-        }
-
+        // valdate name params
         if (opParam != null && setParam != null) {
             throw new ShellException("You cannot specify both 'op:' "
                     + "and 'set:' at the same time (see help).");
         }
    
-        
-        ObjectInstance[] objs = null;
         result = new ArrayList<Object>();
-        if (nameParam != null) {
+        
+        ObjectInstance[] objs = Management.findObjectInstances(ctx, (String)mbeanParam);
+        if(objs == null || objs.length == 0){
+            throw new ShellException(String.format("No MBeans found %s.",mbeanParam));
+        }
 
-            // find object instances
-            ObjectInstance cachedInstance = mbeanMap.get((String) nameParam);
-            if (cachedInstance != null) {
-                objs = new ObjectInstance[]{cachedInstance};
-            }else{
-                objs = Management.getObjectInstances(server, (String) nameParam);
+        for (ObjectInstance obj : objs) {
+            // get attribute
+            if(getParam != null){
+                result.add(getObjectAttribute(server, obj, (String) getParam));
+                c.writeOutput(String.format("%n%s ==> %s", getParam, result));
             }
-            for (ObjectInstance obj : objs) {
-                // get attribute
-                if(getParam != null){
-                    result.add(getObjectAttribute(server, obj, (String) getParam));
-                    c.writeOutput(String.format("%n%s.%s = %s", obj.getClassName(), getParam, result));
-                }
-                
-                // set attribute
-                if(setParam != null){
-                    if(params instanceof List){
-                        params = ((List)params).toArray();
-                    }
-                    this.setObjectAttribute(server, obj, (String)setParam, params);
-                    c.writeOutput(String.format("%n%s.%s set to %s OK", obj.getClassName(), setParam, params));
-                }
-                
-                if(opParam != null){
-                    Object[] paramVals = null;
-                    if(params instanceof List){
-                        paramVals = ((List)params).toArray();
-                    }else{
-                        paramVals = (params != null) ? new Object[]{params} : null;
-                    }
-                    // find all matching operation from object
-                    List<MBeanOperationInfo> ops = null;
-                    try {
-                        ops = findOpsBySignature(server, obj, (String)opParam, paramVals);
-                    } catch (Exception ex) {
-                        throw new ShellException(ex);
-                    }
 
-                    // invoke all matching op
-                    if(ops != null && ops.size() > 0){
-                        for(MBeanOperationInfo op : ops){
-                            try{
-                                Object val = invokeObjectOperation(server, obj, op, paramVals);
-                                result.add(val);
-                                c.writeOutput(String.format(
-                                    "%nInvoked %s.%s(%s) OK [result %s]", 
-                                    obj.getClassName(), 
-                                    opParam, 
-                                    (paramVals != null) ? Arrays.asList(paramVals) : "", 
-                                    val));
-                            }catch(ShellException ex){
-                                c.writeOutput(String.format(
-                                    "Operation %s.%s(%s) failed: %s", 
-                                    obj.getClassName(), 
-                                    opParam, 
-                                    Arrays.asList(getOpSignature(op)),
-                                    ex.getMessage()));
-                            }
+            // set attribute
+            if(setParam != null){
+                if(params instanceof List){
+                    params = ((List)params).toArray();
+                }
+                this.setObjectAttribute(server, obj, (String)setParam, params);
+                c.writeOutput(String.format("%n%s ==> %s", setParam, params));
+            }
+
+            if(opParam != null){
+                Object[] paramVals = null;
+                if(params instanceof List){
+                    paramVals = ((List)params).toArray();
+                }else{
+                    paramVals = (params != null) ? new Object[]{params} : null;
+                }
+                // find all matching operation from object
+                List<MBeanOperationInfo> ops = null;
+                try {
+                    ops = findOpsBySignature(server, obj, (String)opParam, paramVals);
+                } catch (Exception ex) {
+                    throw new ShellException(ex);
+                }
+
+                // invoke all matching op
+                if(ops != null && ops.size() > 0){
+                    for(MBeanOperationInfo op : ops){
+                        try{
+                            Object val = invokeObjectOperation(server, obj, op, paramVals);
+                            result.add(val);
+                            c.writeOutput(String.format(
+                                "%n%s(%s) : %s",
+                                opParam, 
+                                (paramVals != null) ? Arrays.asList(paramVals) : "", 
+                                (val != null) ? val : "void"));
+                        }catch(ShellException ex){
+                            c.writeOutput(String.format(
+                                "Operation %s.%s(%s) failed: %s", 
+                                obj.getClassName(), 
+                                opParam, 
+                                Arrays.asList(getOpSignature(op)),
+                                ex.getMessage()));
                         }
-                    }else{
-                        throw new ShellException(String.format(
-                            "Method %s.%s() not found.", 
-                            obj.getClassName(), 
-                            opParam));
                     }
+                }else{
+                    throw new ShellException(String.format(
+                        "Method %s.%s() not found.", 
+                        obj.getClassName(), 
+                        opParam));
                 }
             }
-         }
+        }
+         
         
         c.writeOutput(String.format("%n%n"));
         

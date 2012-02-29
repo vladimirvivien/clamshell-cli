@@ -75,7 +75,7 @@ public class MBeanCommandTest {
     
     @Test
     public void testCommandWithBadObjectName() {
-        argsMap.put("name", "domain:type=object,status=bad");
+        argsMap.put(MBeanCommand.KEY_ARGS_BEAN, "domain:type=object,status=bad");
         ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);
         try{
             cmd.execute(ctx);
@@ -89,7 +89,7 @@ public class MBeanCommandTest {
     @Test
     public void testCommandWithDefaultNameOK() throws Exception{
         TestUtils.setupJmxConnection(ctx);
-        argsMap.put("name", "java.lang:type=Runtime");
+        argsMap.put(MBeanCommand.KEY_ARGS_BEAN, "java.lang:type=Runtime");
         ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);
         try{
             cmd.execute(ctx);
@@ -104,8 +104,8 @@ public class MBeanCommandTest {
     @Test
     public void testCommandWithAlias() throws Exception{
         TestUtils.setupJmxConnection(ctx);
-        argsMap.put("name", "java.lang:type=Runtime");
-        argsMap.put("as", "runtimeMBean");
+        argsMap.put(MBeanCommand.KEY_ARGS_BEAN, "java.lang:type=Runtime");
+        argsMap.put(MBeanCommand.KEY_ARGS_AS, "runtimeMBean");
         ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);
         try{
             cmd.execute(ctx);

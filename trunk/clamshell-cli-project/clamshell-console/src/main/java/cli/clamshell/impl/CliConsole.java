@@ -134,9 +134,15 @@ public class CliConsole implements IOConsole{
         Thread t = new Thread( new Runnable() {
             public void run() {
                 while (!Thread.interrupted()){
-                    //Context threadContext = cloneContext(context);
+                    // reset command line arguments from previous command
+                    context.putValue(Context.KEY_COMMAND_LINE_ARGS, null);
+
                     boolean handled = false;
                     String line = readInput(prompt.getValue(context));
+                    
+                    if(line == null || line.trim().isEmpty())
+                        continue;
+                    
                     context.putValue(Context.KEY_COMMAND_LINE_INPUT, line);
                     if(controllersExist()){
                         for(InputController controller : controllers){

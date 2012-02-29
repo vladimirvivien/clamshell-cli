@@ -51,7 +51,7 @@ public class TestUtils {
         Map<String,Object> argsMap = (ctx.getValue(Context.KEY_COMMAND_LINE_ARGS) != null) 
                 ? (Map<String,Object>) ctx.getValue(Context.KEY_COMMAND_LINE_ARGS)
                 : new HashMap<String,Object>();
-        argsMap.put("name", "java.lang:type=Runtime");
+        argsMap.put(MBeanCommand.KEY_ARGS_BEAN, "java.lang:type=Runtime");
         ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, argsMap);
         cmd.execute(ctx);
         

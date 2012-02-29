@@ -22,6 +22,8 @@ package cli.clamshell.jmx;
 public class TestJmxMBean implements TestJmxMBeanMBean{
     private String strVal;
     private Integer intVal;
+    private boolean boolVal;
+    
     public void setStringValue(String val) {
         strVal = val;
     }
@@ -59,6 +61,14 @@ public class TestJmxMBean implements TestJmxMBeanMBean{
     
     public String retrieveValue() {
         return strVal;
+    }
+
+    public void setBooleanValue(boolean val) {
+        boolVal = val;
+    }
+    
+    public boolean getBooleanValue(){
+        return boolVal;
     }
 
 }
