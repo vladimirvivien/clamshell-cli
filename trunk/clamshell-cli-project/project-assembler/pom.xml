@@ -4,13 +4,12 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>clamshell</artifactId>
-        <groupId>cli.clamshell</groupId>
+        <groupId>org.clamshellcli</groupId>
         <version>0.1</version>
     </parent>
     <packaging>pom</packaging>
     <artifactId>project-assembler</artifactId>
     <name>project-assembler</name>
-    <url>${cli.url}</url>
 
     <profiles>
         <profile>
@@ -22,8 +21,8 @@
                 </property>
             </activation>
             <build>
-                <finalName>clamshell-cli-ALL-${project.version}</finalName>
-                <directory>${project.parent.basedir}/package-ALL${project.version}</directory>
+                <finalName>clamshell-cli-${project.version}</finalName>
+                <directory>${project.parent.basedir}/dist-package-${project.version}</directory>
                 <plugins>
                     <plugin>
                         <artifactId>maven-assembly-plugin</artifactId>

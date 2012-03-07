@@ -15,11 +15,12 @@
  */
 package cli.clamshell.test;
 
-import cli.clamshell.api.Command;
-import cli.clamshell.api.Context;
-import cli.clamshell.api.IOConsole;
-import cli.clamshell.api.Plugin;
-import cli.clamshell.api.Shell;
+import org.clamshellcli.test.MockContext;
+import org.clamshellcli.api.Command;
+import org.clamshellcli.api.Context;
+import org.clamshellcli.api.IOConsole;
+import org.clamshellcli.api.Plugin;
+import org.clamshellcli.api.Shell;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;

@@ -1,0 +1,3 @@
+org.clamshellcli.test.MockCommand
+org.clamshellcli.test.MockConsole
+org.clamshellcli.test.MockShell

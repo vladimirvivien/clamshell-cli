@@ -4,7 +4,7 @@
   
     <parent>
         <artifactId>clamshell</artifactId>
-        <groupId>cli.clamshell</groupId>
+        <groupId>org.clamshellcli</groupId>
         <version>0.1</version>
     </parent>
   
@@ -55,7 +55,7 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>clamshell-commons</artifactId>
+            <artifactId>clamshell-impl-core</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>

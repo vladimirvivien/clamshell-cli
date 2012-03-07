@@ -138,8 +138,8 @@ public final class Management {
         return Management.getMonitoredVm(monitoredHost, id);
     }
     
-    private static Pattern defaultAddrPattern = Pattern.compile("\\w+");
-    private static Pattern simpleAddrPattern = Pattern.compile("\\w+:[0-9]+"); 
+    //private static Pattern defaultAddrPattern = Pattern.compile(".+");
+    private static Pattern simpleAddrPattern = Pattern.compile(".+:[0-9]+"); 
     /**
      * Returns a fully constructed JMXServiceURL based on passed address.
      * It accepts default form "hostname", "hostname:port", or the verobse form
@@ -154,7 +154,7 @@ public final class Management {
         String urlString = hostUrl;
         
         // if scheme,protocol, port omitted, assume "localhost"
-        if(defaultAddrPattern.matcher(hostUrl).matches()){
+        if(hostUrl.equalsIgnoreCase(VALUE_LOCALHOST)){
             urlString = "service:jmx:rmi:///jndi/rmi://" +
                 hostUrl + ":1099/jmxrmi";             
         }

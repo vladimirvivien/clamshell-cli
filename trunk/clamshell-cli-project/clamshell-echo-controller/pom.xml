@@ -4,17 +4,12 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>clamshell</artifactId>
-        <groupId>cli.clamshell</groupId>
+        <groupId>org.clamshellcli</groupId>
         <version>0.1</version>
     </parent>
     
     <artifactId>clamshell-echo-controller</artifactId>
-    <version>0.1</version>
-    
     <name>clamshell-echo-controller</name>
-    
-    <url>${cli.url}</url>
-
 
     <build>
         <finalName>cli-echo-controller-${project.version}</finalName>
@@ -47,13 +42,13 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>cli.clamshell</groupId>
+            <groupId>org.clamshellcli</groupId>
             <artifactId>clamshell-api</artifactId>
             <version>0.1</version>
         </dependency>
         <dependency>
-            <groupId>cli.clamshell</groupId>
-            <artifactId>clamshell-commons</artifactId>
+            <groupId>org.clamshellcli</groupId>
+            <artifactId>clamshell-impl-core</artifactId>
             <version>0.1</version>
         </dependency>
     </dependencies>

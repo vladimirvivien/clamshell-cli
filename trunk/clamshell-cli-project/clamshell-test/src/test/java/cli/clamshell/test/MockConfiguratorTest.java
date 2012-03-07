@@ -15,7 +15,8 @@
  */
 package cli.clamshell.test;
 
-import cli.clamshell.api.Configurator;
+import org.clamshellcli.test.MockConfigurator;
+import org.clamshellcli.api.Configurator;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.AfterClass;

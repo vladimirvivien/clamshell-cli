@@ -169,7 +169,7 @@ public class ConnectCommand implements Command{
             ctx.putValue(Management.KEY_JMX_URL, jmxUrl);
             
         }catch(Exception ex){
-            throw new ShellException(String.format("%Connection URL "
+            throw new ShellException(String.format("%nConnection URL "
                 + "seems to be invalid: %s", ex.getMessage()));            
         }
         
