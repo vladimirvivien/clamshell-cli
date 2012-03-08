@@ -4,12 +4,12 @@
     <parent>
         <artifactId>clamshell</artifactId>
         <groupId>org.clamshellcli</groupId>
-        <version>0.1</version>
+        <version>0.5.0</version>
     </parent>
     
     <modelVersion>4.0.0</modelVersion>
     <artifactId>clamshell-impl-default</artifactId>
-    <version>0.1</version>
+    <version>0.5.0</version>
     <name>clamshell-impl-default</name>
 
     <build>
@@ -89,13 +89,13 @@
         <dependency>
             <groupId>jline</groupId>
             <artifactId>jline</artifactId>
-            <version>0.9.9</version>
+            <version>${jline.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
           <groupId>com.beust</groupId>
           <artifactId>jcommander</artifactId>
-          <version>1.17</version>
+          <version>${jcommander.version}</version>
         </dependency>        
     </dependencies>
 </project>

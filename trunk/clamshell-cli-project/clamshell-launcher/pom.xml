@@ -5,17 +5,15 @@
     <parent>
         <artifactId>clamshell</artifactId>
         <groupId>org.clamshellcli</groupId>
-        <version>0.1</version>
+        <version>0.5.0</version>
     </parent>
   
     <artifactId>clamshell-launcher</artifactId>
     <packaging>jar</packaging>
-
     <name>clamshell-launcher</name>
-    <url>${cli.url}</url>
 
     <build>
-        <finalName>cli</finalName>
+        <finalName>${launcher.name}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -44,7 +42,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>3.8.1</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
