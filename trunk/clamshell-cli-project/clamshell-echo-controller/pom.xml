@@ -12,7 +12,6 @@
     <name>clamshell-echo-controller</name>
 
     <build>
-        <finalName>cli-echo-controller-${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

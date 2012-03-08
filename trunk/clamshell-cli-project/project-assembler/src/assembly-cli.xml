@@ -7,7 +7,7 @@
   </formats>
   <fileSets>
     <fileSet>
-        <directory>../src/resources/jmx/</directory>
+        <directory>../src/conf/</directory>
         <outputDirectory>.</outputDirectory>
         <includes><include>cli.config</include></includes>
     </fileSet>
@@ -18,11 +18,7 @@
             <include>cli.jar</include>
             <include>lib/*</include>
             <include>clilib/*</include>
-            <include>plugins/cli-shell-*.jar</include>
-            <include>plugins/cli-console-*.jar</include>
-            <include>plugins/cli-cmd-controller-*.jar</include>
-            <include>plugins/cli-commands-*.jar</include>
-            <include>plugins/cli-jmx-controller-*.jar</include>
+            <include>plugins/*.jar</include>
         </includes>
     </fileSet>
   </fileSets>

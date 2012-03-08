@@ -61,7 +61,7 @@ public abstract class AnInputController implements InputController{
                 null;
     }
     protected void setExpectedInputs(String[] inputs){
-        if(inputs != null)
+        if(expectedInputs != null && inputs != null)
             Collections.addAll(expectedInputs, inputs);
     }
     
@@ -82,13 +82,15 @@ public abstract class AnInputController implements InputController{
         
         if(ctrlsMap != null){
             Map<String, Object> map = (Map<String, Object>) ctrlsMap.get(ctrlClassName);
-            String inputPattern = (String) map.get("inputPattern");
-            pattern = (inputPattern != null) ? Pattern.compile(inputPattern) : null;
-            
-            expectedInputs = (List<String>) map.get("expectedInputs");
-            
-            String flag = (String)map.get("enabled");
-            enabled = Boolean.valueOf((flag != null) ? flag : "false");
+            if(map != null){
+                String inputPattern = (String) map.get("inputPattern");
+                pattern = (inputPattern != null) ? Pattern.compile(inputPattern) : null;
+
+                expectedInputs = (List<String>) map.get("expectedInputs");
+
+                String flag = (String)map.get("enabled");
+                enabled = Boolean.valueOf((flag != null) ? flag : "false");
+            }
         }
     }
     

@@ -13,51 +13,17 @@
 
     <profiles>
         <profile>
-            <id>package.all</id>
+            <id>package.cli</id>
             <activation>
                 <property>
-                    <name>package.all</name>
-                    <value>true</value>
-                </property>
-            </activation>
-            <build>
-                <finalName>clamshell-cli-${project.version}</finalName>
-                <directory>${project.parent.basedir}/dist-package-${project.version}</directory>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                        <version>2.2.1</version>
-                        <executions>
-                            <execution>
-                                <id>assemble.all</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>single</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <descriptors>
-                                <descriptor>src/assembly-all.xml</descriptor>
-                            </descriptors>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        
-        <profile>
-            <id>package.jmx</id>
-            <activation>
-                <property>
-                    <name>package.jmx</name>
+                    <name>package.cli</name>
                     <value>true</value>
                 </property>
             </activation>
             
             <build>
-                <finalName>jmx-cli-${project.version}</finalName>
-                <directory>../package-jmx-${project.version}</directory>
+                <finalName>clamshellcli-${project.version}</finalName>
+                <directory>../dist-package-${project.version}</directory>
                 
                 <plugins>
                     <plugin>
@@ -65,7 +31,7 @@
                         <version>2.2.1</version>
                         <executions>
                             <execution>
-                                <id>assemble.jmx</id>
+                                <id>assemble.cli</id>
                                 <phase>package</phase>
                                 <goals>
                                     <goal>single</goal>
@@ -74,7 +40,7 @@
                         </executions>
                         <configuration>
                             <descriptors>
-                                <descriptor>src/assembly-jmx.xml</descriptor>
+                                <descriptor>src/assembly-cli.xml</descriptor>
                             </descriptors>
                         </configuration>
                     </plugin>

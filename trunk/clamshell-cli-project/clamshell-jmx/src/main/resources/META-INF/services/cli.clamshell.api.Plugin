@@ -1,9 +1,0 @@
-cli.clamshell.jmx.JmxSplashScreen
-cli.clamshell.jmx.JmxPrompt
-cli.clamshell.jmx.JmxController
-cli.clamshell.jmx.PsCommand
-cli.clamshell.jmx.ConnectCommand
-cli.clamshell.jmx.MBeanCommand
-cli.clamshell.jmx.DescribeCommand
-cli.clamshell.jmx.ListCommand
-cli.clamshell.jmx.ExecCommand
