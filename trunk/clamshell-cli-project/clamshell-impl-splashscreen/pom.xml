@@ -6,7 +6,7 @@
     <parent>
         <artifactId>clamshell</artifactId>
         <groupId>org.clamshellcli</groupId>
-        <version>0.5.0</version>
+        <version>0.5.1</version>
     </parent>
   
     <artifactId>clamshell-impl-splashscreen</artifactId>

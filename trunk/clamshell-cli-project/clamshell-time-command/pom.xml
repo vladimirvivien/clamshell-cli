@@ -1,17 +1,14 @@
-
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
-  
     <parent>
         <artifactId>clamshell</artifactId>
         <groupId>org.clamshellcli</groupId>
         <version>0.5.1</version>
     </parent>
-  
-    <artifactId>clamshell-api</artifactId>
-    <packaging>jar</packaging>
-    <name>clamshell-api</name>
+    <artifactId>clamshell-time-command</artifactId>
+    <name>clamshell-time-command</name>
 
     <build>
         <plugins>
@@ -29,18 +26,28 @@
                             <Project-Url>${cli.url}</Project-Url>
                         </manifestEntries>
                     </archive>
-                    <outputDirectory>${project.parent.basedir}/dist/clilib</outputDirectory>
+                    <outputDirectory>${project.parent.basedir}/dist/plugins</outputDirectory>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-    
+  
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.clamshellcli</groupId>
+            <artifactId>clamshell-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.clamshellcli</groupId>
+            <artifactId>clamshell-impl-core</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>

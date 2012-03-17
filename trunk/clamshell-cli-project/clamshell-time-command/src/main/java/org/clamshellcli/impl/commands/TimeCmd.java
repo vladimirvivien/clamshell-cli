@@ -19,12 +19,12 @@
  */
 package org.clamshellcli.impl.commands;
 
-import org.clamshellcli.api.Command;
-import org.clamshellcli.api.Context;
-import org.clamshellcli.api.IOConsole;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
+import org.clamshellcli.api.Command;
+import org.clamshellcli.api.Context;
+import org.clamshellcli.api.IOConsole;
 
 /**
  * This class implements the Command interface to return the current time.
