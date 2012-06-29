@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+   Copyright (C) 2011 the original author or authors.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+--><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.clamshellcli</groupId>
+    <artifactId>clamshell</artifactId>
+    <version>0.5.2</version>
+    <packaging>pom</packaging>
+    
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <compile.source>1.6</compile.source>
+        <compile.target>1.6</compile.target>
+        <cli.version>0.5.0</cli.version>
+        <junit.version>4.8.2</junit.version>
+        <gson.version>2.0</gson.version>
+        <jline.version>1.0</jline.version>
+        <jcommander.version>1.17</jcommander.version>
+        <launcher.name>cli</launcher.name>
+        <cli.url>http://code.google.com/p/clamshell-cli/</cli.url>
+        <cli.scm>https://code.google.com/p/clamshell-cli/</cli.scm>
+        <cli.release.repo>s3://repo.clamshellcli.org/release</cli.release.repo>
+        <spring.release.repo>http://maven.springframework.org/release</spring.release.repo>
+    </properties>
+    
+    <name>clamshell</name>
+    <url>${cli.url}</url>
+    <description>Clamshell-Cli = a framework to build command-line console application in Java.</description>
+    <inceptionYear>2011</inceptionYear>
+    
+    <organization>
+        <name>ClamShell-Cli</name>
+        <url>${cli.url}</url>
+    </organization>
+  
+    <licenses>
+        <license>
+            <name>apache_v2</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>${cli.repo}</url>
+        <connection>${cli.repo}</connection>
+    </scm>
+  
+    <developers>
+        <developer>
+            <name>Vladimir Vivien</name>
+        </developer>
+    </developers>
+    
+    <pluginRepositories>
+        <pluginRepository>
+            <id>spring-maven-release</id>
+            <name>Spring Maven Release Repository</name>
+            <url>${spring.release.repo}</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+            
+    <build>
+        <extensions>
+            <extension>
+                <groupId>org.springframework.build</groupId>
+                <artifactId>aws-maven</artifactId>
+                <version>4.1.0.RELEASE</version>
+            </extension>
+        </extensions>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>${compile.source}</source>
+                    <target>${compile.target}</target>
+                </configuration>                
+            </plugin>
+        </plugins>
+    </build>
+    
+    <modules>
+        <module>clamshell-api</module>
+        <module>clamshell-impl-core</module>
+        <module>clamshell-impl-default</module>
+        <module>clamshell-impl-splashscreen</module>
+        <module>clamshell-time-command</module>
+        <module>clamshell-launcher</module>
+        <module>clamshell-test</module>
+        <module>clamshell-echo-controller</module>
+        <module>project-assembler</module>
+  </modules>
+    
+    <profiles>
+        <profile>
+            <id>javadocs</id>
+            <activation>
+                <property>
+                    <name>build.docs</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.8</version>
+                        <executions>
+                            <execution>
+                                <id>aggregate</id>
+                                <phase>site</phase>
+                                <goals>
+                                    <goal>aggregate</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${project.basedir}/apidocs</outputDirectory>
+                                    <destDir>${project.basedir}/apidocs</destDir>
+                                    <finalName>${project.basedir}/apidocs</finalName>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        
+        <profile>
+            <id>license</id>
+            <activation>
+                <property>
+                    <name>build.license</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>license-maven-plugin</artifactId>
+                        <version>1.0-beta-3</version>
+                        <configuration>
+                            <verbose>false</verbose>
+                            <header>src/main/license/license-header.txt</header>
+                            <licenseName>v3</licenseName>
+                            <header>src/licenses/apache_v2-header.txt</header>
+                            <roots>
+                                <root>src/main/java</root>
+                                <root>src/test</root>
+                            </roots>
+                            
+                            <includes>
+                                <include>**/*.java</include>
+                            </includes>                        
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>deploy.local</id>
+            <activation>
+                <property>
+                    <name>deploy.local</name>
+                    <value>true</value>
+                </property>
+            </activation> 
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.4</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>                        
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        
+        <profile>
+            <id>deploy.aws</id>
+            <activation>
+                <property>
+                    <name>deploy.aws</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            
+            <distributionManagement>
+                <repository>
+                    <id>aws-release</id>
+                    <name>S3 Maven Release Repo</name>
+                    <url>${cli.release.repo}</url>
+                </repository>
+            </distributionManagement> 
+            
+            <repositories>
+                <repository>
+                    <id>spring-release</id>
+                    <name>Spring Portfolio Release Repository</name>
+                    <url>${spring.release.repo}</url>
+                </repository>        
+            </repositories>
+    
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.4</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>                        
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>
