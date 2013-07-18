@@ -57,7 +57,7 @@ public class Run {
         
         // modify the the thread's class loader
         ClassLoader parent = Thread.currentThread().getContextClassLoader();
-        ClassLoader cl = Clamshell.Runtime.createClassLoaderForPath(new File[]{libDir}, parent);
+        ClassLoader cl = Clamshell.ClassManager.createClassLoaderForPath(new File[]{libDir}, parent);
         Thread.currentThread().setContextClassLoader(cl);
         
         

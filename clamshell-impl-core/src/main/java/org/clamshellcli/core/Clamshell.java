@@ -28,31 +28,76 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.clamshellcli.api.Configurator;
 import org.clamshellcli.api.Plugin;
 
 /**
  * Utility class.
- * @author vvivien
+ * @author Vladimir Vivien
  */
 public final class Clamshell {
     private static final Logger log = Logger.getLogger(Clamshell.class.getName());
-    
     private Clamshell(){}
     
-    /**
-     * Clamshell Runtime utility methods.
-     */
-    public static class Runtime{
+    public static class Runtime {
+        private static ShellContext ctx;
+        private static Configurator config;
+        private static ClassLoader pluginsCl;
+        private static List<Plugin> plugins;
+        
+        public static ShellContext getContext() {
+            return (ctx == null) ? ctx = ShellContext.createInstance() : ctx;
+        }
+        
+        public static Configurator getConfigurator () {
+            return (config == null) ? config = ShellConfigurator.createNewInstance(): config;
+        }
         
         /**
-         * Creates a collection of all classes that implements Plugin using the 
-         * ServiceLoader API.
-         * @param cl a ClassLoader that provides a valid classpath
+         * Returns the plugins classloader, uses the current thread's a s parent.
+         * @return 
+         */
+        public static ClassLoader getPluginsClassLoader() {
+            return getPluginsClassLoader(Thread.currentThread().getContextClassLoader());
+        }
+        
+        /**
+         * Returns the class loader for the plugins directory specified by cli.dir.plugins.
+         * @param parentCl - a parent classloader to use.
+         * @return 
+         */
+        public static ClassLoader getPluginsClassLoader(ClassLoader parentCl) {
+            if(pluginsCl != null) return pluginsCl; // return if already loaded.
+
+            String pluginsDirName = getConfigurator().getPropertiesMap().get(ShellConfigurator.KEY_CONFIG_PLUGINSDIR);
+            File pluginsDir = new File(pluginsDirName);
+            if(pluginsDir.exists() && pluginsDir.isDirectory()){
+                try {
+                    pluginsCl = Clamshell.ClassManager.createClassLoaderForPath(
+                        new File[]{pluginsDir},
+                        parentCl
+                    );
+                } catch (Exception ex) {
+                   throw new RuntimeException(ex);
+                }
+            }else{
+                throw new RuntimeException (String.format("Unable to find plugins directory "
+                        + "[%s]. Clamshell will stop.", pluginsDir.getAbsolutePath()));
+            }
+            return pluginsCl;
+        }
+        
+        
+        /**
+         * Retrieve all Plugin.class instances from specified plugins classloader.
+         * @param cl a ClassLoader that provides a v
          * @return List of Plugin instances.
          */
-        public static List<Plugin> loadPlugins(ClassLoader cl) {
-            ServiceLoader<Plugin> pluginClasses = ServiceLoader.load(Plugin.class, cl);
-            List<Plugin> plugins = new ArrayList();
+        public static List<Plugin> getPlugins() {
+            if(plugins != null) return plugins;
+            
+            ServiceLoader<Plugin> pluginClasses = ServiceLoader.load(Plugin.class, getPluginsClassLoader());
+            plugins = new ArrayList();
             for (Plugin e : pluginClasses) {
                 plugins.add(e);
             }
@@ -61,10 +106,32 @@ public final class Clamshell {
         }
         
         /**
+         * etrieves a list of Class instances using the provided Type.
+         * @param <T> type filter
+         * @param type type
+         * @return list of instances of type <T>
+         */
+        public static <T> List<T> getPluginsByType(Class<T> type) {
+            List<T> result = new ArrayList<T>();
+            for (Plugin p : getPlugins()) {
+                if (type.isAssignableFrom(p.getClass())) {
+                    result.add((T) p);
+                }
+            }
+            return result;
+        }
+    }
+    
+    /**
+     * Clamshell ClassManager utility Classes/Methods.
+     */
+    public static class ClassManager{
+        
+        /**
          * Creates a class loader object based on a physical locations provided.
          * @param paths an array of File paths where classes are located
          * @param parent the parent loader associated with this call.
-         * @return ClassLoader instance
+         * @return ClassManager instance
          * @throws Exception if something goes horribly wrong.
          */
         public static ClassLoader createClassLoaderForPath(File[] paths, ClassLoader parent) throws Exception {

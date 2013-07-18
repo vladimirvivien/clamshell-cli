@@ -42,9 +42,6 @@ public class ShellContext implements Context{
     private static final Logger log = Logger.getLogger(ShellContext.class.getName());
     private Map<String, Object> values;
     private static ShellContext context;
-    private Configurator config;
-    private List<Plugin> plugins;
-    private ClassLoader classLoader;
     private Shell shell;
     private IOConsole console;
     private Prompt prompt;
@@ -66,36 +63,6 @@ public class ShellContext implements Context{
      */
     private ShellContext(){
         values = new HashMap<String, Object>();
-        config = ShellConfigurator.createNewInstance();
-    }
-    
-    /**
-     * Gets the last instance of ClassLoader created, otherwise it creates one.
-     * Internally, it setups a class loader for the path specified in property cli.dir.plugins
-     * (or defaults to directory ./plugins)
-     * Any jar fiels found at that location will be cloaded in that class loader.
-     * @return 
-     */
-    private ClassLoader getClassLoader(){
-        if(classLoader != null) return classLoader; // return if already loaded.
-        
-        String pluginsDirName = config.getPropertiesMap().get(ShellConfigurator.KEY_CONFIG_PLUGINSDIR);
-        File pluginsDir = new File(pluginsDirName);
-        if(pluginsDir.exists() && pluginsDir.isDirectory()){
-            try {
-                classLoader = Clamshell.Runtime.createClassLoaderForPath(
-                    new File[]{pluginsDir},
-                    Thread.currentThread().getContextClassLoader()
-                );
-            } catch (Exception ex) {
-               throw new RuntimeException(ex);
-            }
-        }else{
-            throw new RuntimeException (String.format("Unable to find plugins directory "
-                    + "[%s]. Clamshell will stop.", pluginsDir.getAbsolutePath()));
-        }
-        
-        return classLoader;
     }
     
     /**
@@ -151,7 +118,7 @@ public class ShellContext implements Context{
      */
     @Override
     public Configurator getConfigurator() {
-        return config;
+        return Clamshell.Runtime.getConfigurator();
     }
     
     /**
@@ -160,10 +127,7 @@ public class ShellContext implements Context{
      */
     @Override
     public List<Plugin> getPlugins(){
-        if(plugins != null) return plugins;
-        ClassLoader cl = getClassLoader();
-        plugins = Clamshell.Runtime.loadPlugins(cl);
-        return plugins;
+        return Clamshell.Runtime.getPlugins();
     }
     
     /**
@@ -174,13 +138,7 @@ public class ShellContext implements Context{
      */
     @Override
     public <T> List<T> getPluginsByType(Class<T> type) {
-        List<T> result = new ArrayList<T>();
-        for (Plugin p : getPlugins()) {
-            if (type.isAssignableFrom(p.getClass())) {
-                result.add((T) p);
-            }
-        }
-        return result;
+        return Clamshell.Runtime.getPluginsByType(type);
     }
     
     /**
@@ -190,7 +148,7 @@ public class ShellContext implements Context{
     @Override
     public Shell getShell() {
         if(shell != null) return shell;
-        List<Shell> shells = getPluginsByType(Shell.class);
+        List<Shell> shells = Clamshell.Runtime.getPluginsByType(Shell.class);
         shell = (shells.size() > 0) ? shells.get(0) : null;
         return shell;
     }
@@ -199,7 +157,7 @@ public class ShellContext implements Context{
     @Override
     public IOConsole getIoConsole() {
         if(console != null) return console;
-        List<IOConsole> consoles = getPluginsByType(IOConsole.class);
+        List<IOConsole> consoles = Clamshell.Runtime.getPluginsByType(IOConsole.class);
         console = (consoles.size() > 0) ? consoles.get(0) : null;
         return console;
     }
@@ -207,7 +165,7 @@ public class ShellContext implements Context{
     @Override
     public Prompt getPrompt() {
         if(prompt != null) return prompt;
-        List<Prompt> prompts = getPluginsByType(Prompt.class);
+        List<Prompt> prompts = Clamshell.Runtime.getPluginsByType(Prompt.class);
         prompt = (prompts.size() > 0) ? prompts.get(0) : new DefaultPrompt();
         return prompt;
     }
@@ -215,7 +173,7 @@ public class ShellContext implements Context{
     @Override
     public List<Command> getCommands() {
         if(commands != null) return commands;
-        commands = getPluginsByType(Command.class);
+        commands = Clamshell.Runtime.getPluginsByType(Command.class);
         return commands;
     }
     

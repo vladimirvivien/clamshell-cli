@@ -56,18 +56,18 @@ public class ClamshellTest {
     
     @Test
     public void testRuntimeLoadPlugins() throws Exception{
-        ClassLoader cl = Clamshell.Runtime.createClassLoaderForPath(
+        ClassLoader cl = Clamshell.ClassManager.createClassLoaderForPath(
             new File[]{new File("../mock-env/plugins")}, 
             Thread.currentThread().getContextClassLoader()
         );  
-        List<Plugin> plugins = Clamshell.Runtime.loadPlugins(cl);
+        List<Plugin> plugins = Clamshell.Runtime.getPlugins();
         assert plugins.size() >= 3;
     }
     
-    //@Test
+    @Test
     public void testCreateClassLoaderForPath() throws Exception{
-        ClassLoader cl = Clamshell.Runtime.createClassLoaderForPath(
-            new File[]{new File("./plugins")}, 
+        ClassLoader cl = Clamshell.ClassManager.createClassLoaderForPath(
+            new File[]{new File("../mock-env/plugins")}, 
             Thread.currentThread().getContextClassLoader());
         
         assert cl != null;
