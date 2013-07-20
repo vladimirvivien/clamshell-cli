@@ -31,15 +31,14 @@ public interface Configurator {
     public static final String KEY_CONFIG_FILE  = "cli.config.file"; // property name for property file.
     public static final String KEY_CONFIG_PROPS = "properties";
     public static final String KEY_CONFIG_CTRLS = "controllers";
-    public static final String KEY_CONFIG_PLUGINSDIR = "pluginsDir";
-    public static final String KEY_CONFIG_LIBIDR = "libDir";
     
+    public static final String VALUE_CONFIG_PLUGINSDIR = "plugins";
+    public static final String VALUE_CONFIG_LIBDIR = "lib";
     public static final String VALUE_CONFIG_FILE = "cli.config";    
     public static final String VALUE_LINE_SEP = System.getProperty("line.separator");
     
     /**
-     * Returns the raw config map from cli.config. You must understand the 
-     * layout of cli.config to parse the content of this file.
+     * Returns the raw config map from cli.config. 
      * @return Map<String,Map<String,Object>> containing all parsed content
      */
     public Map<String,Map<String,? extends Object>> getConfigMap();
@@ -51,7 +50,7 @@ public interface Configurator {
     public Map<String,String> getPropertiesMap();
     
     /**
-     * Convenince method to return the "controllers" section of config map.
+     * Convenience method to return the "controllers" section of config map.
      * @return Map<String,Map<String,? extends Object>>
      */
     public Map<String,Map<String, ? extends Object>> getControllersMap();

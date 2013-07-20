@@ -47,15 +47,7 @@ public interface InputController extends Plugin{
      * @return 
      */
     public Pattern respondsTo();
-    
-    /**
-     * This method returns a collection of input values that the controller can 
-     * expect from command-line.  This information can be used in help 
-     * implementation strategies.
-     * @return Array of String representing expected inputs.
-     */
-    public String[] getExpectedInputs();
-    
+        
     /**
      * A flag that indicates if the controller is enabled and should participate
      * in input control.

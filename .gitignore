@@ -3,3 +3,4 @@ dist*
 target
 nbactions.xml
 package*
+mock-env/plugins

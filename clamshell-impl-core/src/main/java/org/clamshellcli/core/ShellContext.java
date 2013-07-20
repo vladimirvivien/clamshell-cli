@@ -22,7 +22,6 @@ package org.clamshellcli.core;
 import org.clamshellcli.api.Command;
 import org.clamshellcli.api.IOConsole;
 import org.clamshellcli.api.Prompt;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,7 +31,6 @@ import org.clamshellcli.api.Configurator;
 import org.clamshellcli.api.Context;
 import org.clamshellcli.api.Plugin;
 import org.clamshellcli.api.Shell;
-import java.lang.String;
 
 /**
  * Implementation of the Context used to provide shell information at runtime.
@@ -41,7 +39,6 @@ import java.lang.String;
 public class ShellContext implements Context{
     private static final Logger log = Logger.getLogger(ShellContext.class.getName());
     private Map<String, Object> values;
-    private static ShellContext context;
     private Shell shell;
     private IOConsole console;
     private Prompt prompt;
@@ -52,10 +49,7 @@ public class ShellContext implements Context{
      * @return ShellContex
      */
     public static ShellContext createInstance() {
-        if(context == null) {
-            context = new ShellContext();
-        }
-        return context;
+        return new ShellContext();
     }
     
     /**
@@ -202,7 +196,8 @@ public class ShellContext implements Context{
     }
     
     private class DefaultPrompt implements Prompt{
-        private final String value = System.getProperty("user.name") + " > ";
+        private final String value = System.getProperty("user.name") + "> ";
+        @Override
         public String getValue(Context ctx) {
             return value;
         }

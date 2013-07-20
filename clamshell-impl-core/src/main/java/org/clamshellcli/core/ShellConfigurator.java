@@ -28,6 +28,7 @@ import com.google.gson.reflect.TypeToken;
 import java.io.FileReader;
 import java.lang.reflect.Type;
 import java.util.Map;
+import static org.clamshellcli.api.Configurator.KEY_CONFIG_FILE;
 
 /**
  * This is a default implementation of the Configurator.
@@ -37,35 +38,52 @@ import java.util.Map;
 public class ShellConfigurator implements Configurator{
     private static final Logger log = Logger.getLogger(ShellConfigurator.class.getName());
     private static final String CONFIG_FILE_PATH = "./" + VALUE_CONFIG_FILE;
-    private static File configFile;
+    private File configFile;
     private Map<String, Map<String,?>> configMap;
 
-    // setup path to properties file
-    static {
-        configFile = new File(
-            (System.getProperty(KEY_CONFIG_FILE) != null)
-             ? System.getProperty(KEY_CONFIG_FILE)
-             : CONFIG_FILE_PATH);
-    }
-
-    private ShellConfigurator(){
+    private ShellConfigurator(String configFileName){
+        configFile = createConfigFile(configFileName);
         initialize();
     }
     
+    public static ShellConfigurator createNewInstance(String configFileName){
+        return new ShellConfigurator(configFileName);
+    }
+    
     public static ShellConfigurator createNewInstance(){
-        return new ShellConfigurator();
+        return new ShellConfigurator(null);
     }
-
+    
+    public File getConfigFile() {
+        return configFile; 
+    }
+    
+    @Override
     public Map<String, Map<String,? extends Object>> getControllersMap() {
-        return (Map<String, Map<String, ? extends Object>>) configMap.get(KEY_CONFIG_CTRLS);
+        return (configMap != null) ? 
+            (Map<String, Map<String, ? extends Object>>) configMap.get(KEY_CONFIG_CTRLS) :
+            null;
     }
     
+    @Override
     public Map<String,String> getPropertiesMap(){
-        return (Map<String, String>) configMap.get(KEY_CONFIG_PROPS);
+        return (configMap != null ) ? 
+            (Map<String, String>) configMap.get(KEY_CONFIG_PROPS) :
+            null;
     }
     
+    @Override
     public Map<String,Map<String, ?>> getConfigMap(){
         return configMap;
+    }
+    
+    private File createConfigFile(String fileName){
+        return (fileName != null ) ? new File(fileName) :
+            new File(
+                (System.getProperty(KEY_CONFIG_FILE) != null)
+                ? System.getProperty(KEY_CONFIG_FILE)
+                : CONFIG_FILE_PATH
+            );         
     }
 
     private void initialize() {
@@ -77,13 +95,7 @@ public class ShellConfigurator implements Configurator{
             } catch (FileNotFoundException ex) {
                 throw new RuntimeException(ex);
             }
-        }else{
-            throw new RuntimeException(String.format(
-                "Unable to find config file [%s]."
-                + " Clamshell looks for config file in root directory"
-                + " or via property -D%s.", configFile, KEY_CONFIG_FILE
-            ));
         }
     }
-    
+   
 }

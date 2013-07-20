@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 public abstract class AnInputController implements InputController{
     private Pattern pattern;
     private List<String> expectedInputs;
-    private Boolean enabled;
+    private Boolean enabled = new Boolean(true);
     
     @Override
     public Boolean isEnabled(){
@@ -50,19 +50,9 @@ public abstract class AnInputController implements InputController{
     public Pattern respondsTo() {
         return pattern;
     }
-    protected void setRespondsTo(Pattern p){
+    
+    public void setRespondsTo(Pattern p){
         pattern = p;
-    }
-
-    @Override
-    public String[] getExpectedInputs() {
-        return (expectedInputs != null) ?
-                expectedInputs.toArray(new String[0]) :
-                null;
-    }
-    protected void setExpectedInputs(String[] inputs){
-        if(expectedInputs != null && inputs != null)
-            Collections.addAll(expectedInputs, inputs);
     }
     
     /**
@@ -78,7 +68,8 @@ public abstract class AnInputController implements InputController{
         String ctrlClassName = this.getClass().getName();
         Configurator config = ctx.getConfigurator();
         
-        Map<String,Map<String,? extends Object>> ctrlsMap = (Map<String,Map<String,? extends Object>>) config.getControllersMap();
+        Map<String,Map<String,? extends Object>> ctrlsMap = 
+                (Map<String,Map<String,? extends Object>>) config.getControllersMap();
         
         if(ctrlsMap != null){
             Map<String, Object> map = (Map<String, Object>) ctrlsMap.get(ctrlClassName);
@@ -86,10 +77,8 @@ public abstract class AnInputController implements InputController{
                 String inputPattern = (String) map.get("inputPattern");
                 pattern = (inputPattern != null) ? Pattern.compile(inputPattern) : null;
 
-                expectedInputs = (List<String>) map.get("expectedInputs");
-
                 String flag = (String)map.get("enabled");
-                enabled = Boolean.valueOf((flag != null) ? flag : "false");
+                enabled = Boolean.valueOf((flag != null) ? flag : "true");
             }
         }
     }

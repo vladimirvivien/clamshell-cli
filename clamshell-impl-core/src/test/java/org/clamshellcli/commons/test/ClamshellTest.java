@@ -23,6 +23,7 @@ import org.clamshellcli.api.Plugin;
 import org.clamshellcli.core.Clamshell;
 import java.io.File;
 import java.util.List;
+import org.clamshellcli.core.ShellConfigurator;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -39,7 +40,9 @@ public class ClamshellTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        //System.setProperty(Configurator., "../mock-env/plugins");
+        System.setProperty(ShellConfigurator.KEY_CONFIG_FILE, "../mock-env/conf/cli.config");
+        Clamshell.Runtime.setLibDir(new File("../mock-env/lib"));
+        Clamshell.Runtime.setPluginsDir(new File("../mock-env/plugins"));
     }
 
     @AfterClass
@@ -55,23 +58,23 @@ public class ClamshellTest {
     }
     
     @Test
-    public void testRuntimeLoadPlugins() throws Exception{
-        ClassLoader cl = Clamshell.ClassManager.createClassLoaderForPath(
-            new File[]{new File("../mock-env/plugins")}, 
-            Thread.currentThread().getContextClassLoader()
-        );  
+    public void testRuntimeLoadPlugins() throws Exception{  
         List<Plugin> plugins = Clamshell.Runtime.getPlugins();
         assert plugins.size() >= 3;
     }
     
     @Test
+    /**
+     * This test will fail (classNotFound) if mock-env/plugins/ is empty.
+     * Run project clamshellcli-test to put pluings at that location.
+     */
     public void testCreateClassLoaderForPath() throws Exception{
         ClassLoader cl = Clamshell.ClassManager.createClassLoaderForPath(
             new File[]{new File("../mock-env/plugins")}, 
             Thread.currentThread().getContextClassLoader());
         
         assert cl != null;
-        Object o = cl.loadClass("demo.component.SimplePlugin");
+        Object o = cl.loadClass("org.clamshellcli.test.MockShell");
         assert o != null;
     }
 }

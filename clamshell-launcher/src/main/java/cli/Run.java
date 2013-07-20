@@ -39,35 +39,40 @@ import java.util.Map;
  * @author vladimir.vivien
  */
 public class Run {
-    public static void main(String[] args) throws Exception{        
+    public static void main(String[] args){        
         // create/confiugre the context
-        Context context = ShellContext.createInstance();
-        Configurator config = context.getConfigurator();
-        Map<String,String> propsMap = config.getPropertiesMap();
-        String libDirName = propsMap.get(Configurator.KEY_CONFIG_LIBIDR);
-        String pluginsDirName = propsMap.get(Configurator.KEY_CONFIG_PLUGINSDIR);
+        Context context = null;
+        Configurator config = null;
+        File libDir = Clamshell.Runtime.getLibDir();
         
+        try{
+            context = Clamshell.Runtime.getContext();
+            config = Clamshell.Runtime.getConfigurator();
+        }catch(RuntimeException ex){
+            System.out.printf("%nUnable to start Clamshell:%n%s.%n", ex.getMessage());
+            System.exit(1);
+        }
+                
         // only continue if plugins are found
-        File libDir = new File(libDirName);
         if(!libDir.exists()){
-            System.out.printf("%nLib directory [%s] not found. ClamShell-Cli will exit.%n%n", libDir.getCanonicalPath());
+            System.out.printf("%nLib directory not found. ClamShell-Cli will exit.%n", 
+                libDir.getAbsolutePath());
             System.exit(1);
         }
-        context.putValue(Configurator.KEY_CONFIG_LIBIDR, libDir);
         
-        // modify the the thread's class loader
-        ClassLoader parent = Thread.currentThread().getContextClassLoader();
-        ClassLoader cl = Clamshell.ClassManager.createClassLoaderForPath(new File[]{libDir}, parent);
-        Thread.currentThread().setContextClassLoader(cl);
-        
-        
-        File pluginsDir = new File(pluginsDirName);
-        if(!pluginsDir.exists()){
-            System.out.printf("%nPugins directory [%s] not found. ClamShell-Cli will exit.%n%n", pluginsDir.getCanonicalPath());
-            System.exit(1);
+        // add libDir to classpath
+        try{
+            // modify the the thread's class loader
+            ClassLoader parent = Thread.currentThread().getContextClassLoader();
+            ClassLoader cl = Clamshell.ClassManager.createClassLoaderForPath(
+                new File[]{libDir}, 
+                parent
+            );
+            Thread.currentThread().setContextClassLoader(cl);
+        }catch(Exception ex){
+            System.out.printf("%nUnable to create classloader for path %s:%n%s.", libDir, ex.getMessage());
         }
-        context.putValue(Configurator.KEY_CONFIG_PLUGINSDIR, pluginsDir);
-
+        
         context.putValue(Context.KEY_INPUT_STREAM, System.in);
         context.putValue(Context.KEY_OUTPUT_STREAM, System.out);
         
@@ -75,14 +80,23 @@ public class Run {
         if(context.getPlugins().size() > 0){
             Shell shell = context.getShell();
             if(context.getShell() != null){
-                shell.plug(context);
+                try{
+                    shell.plug(context);
+                }catch(Exception ex){
+                    ex.printStackTrace();
+                    System.out.printf("%nSomething went wrong:%n%s%n", ex.getMessage());
+                }
             }else{
-                System.out.printf ("%nNo Shell component found in plugins directory [%s]."
-                        + " ClamShell-Cli will exit now.%n", pluginsDir.getCanonicalPath());
+                System.out.printf (
+                    "%nNo Shell component found in plugins directory." +
+                    "%nA Shell instance must be on the classpath." +
+                    "%nExiting now.");
                 System.exit(1);
             }
         }else{
-            System.out.printf ("%nNo plugins found in [%s]. ClamShell-Cli will exit now.%n%n", pluginsDir.getCanonicalPath());
+            System.out.printf (
+                "%nNo plugins found in found in the plugins directory. " +
+                "%nClamShell-Cli will exit now.");
             System.exit(1);
         }
     }

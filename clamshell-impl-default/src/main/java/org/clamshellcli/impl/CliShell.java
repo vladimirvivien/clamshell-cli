@@ -15,20 +15,33 @@
  */
 package org.clamshellcli.impl;
 
-import org.clamshellcli.api.Configurator;
 import org.clamshellcli.api.Context;
 import org.clamshellcli.api.IOConsole;
 import org.clamshellcli.api.Shell;
-import java.io.File;
+import java.util.List;
+import java.util.regex.Pattern;
+import org.clamshellcli.api.InputController;
+import org.clamshellcli.api.Prompt;
+import org.clamshellcli.api.SplashScreen;
+import org.clamshellcli.core.Clamshell;
 
 /**
- * This implementation of the Shell component is for a simple command-line system.
- * In this implementation, the shell loads the IOConsole for setup.
- * It then delegates loading of additional components (InputControllers, Commands)
- * to the IOConsole instance found in the classpath.
+ * This implementation of the Shell component loads all other components in the system.
+ * In this implementation, the Shell loads
+ * <ul>
+ * <li> IOConsole </li>
+ * <li> Prompt </li>
+ * <li> Controllers <li>
+ * </lu>the IOConsole for setup.
+ * This component also handles non-interactive mode where it executes command
+ * passed in as arguments and exits upon completion.
  * @author vladimir.vivien
  */
 public class CliShell implements Shell{
+    private Context context;
+    private IOConsole console;
+    private Prompt prompt;
+    private List<InputController> controllers;
 
     /** 
      * This method will be called when the shell is invoked to handle commands
@@ -52,19 +65,95 @@ public class CliShell implements Shell{
      *
      * @param plug instance of Context
      */
+    @Override
     public void plug(Context plug) {
-        IOConsole console = plug.getIoConsole();
-        if(console == null){
+        loadComponents(plug);
+        startConsoleThread();
+    }
+    
+    private void loadComponents(Context plug) {
+        context = plug;
+        
+        prompt = plug.getPrompt();
+        prompt.plug(plug);
+        
+        // setup Console, if none found, create default.
+        console = plug.getIoConsole();
+        if(console == null){            
             throw new RuntimeException(
                 String.format("%nUnable to find required IOConsole component in"
                 + " plugins directory [%s]."
-                + "Exiting...%n", 
-                ((File)plug.getValue(Configurator.KEY_CONFIG_PLUGINSDIR)).getName())
+                + "Exiting...%n", Clamshell.Runtime.getPluginsDir())
             );
-        } 
-                
-        //launch console
-        console.plug(plug);        
+        }
+        console.plug(plug);
+        
+
+        // activate controllers
+        controllers = plug.getPluginsByType(InputController.class); 
+        if(controllers.size() > 0){
+            for (InputController ctrl : controllers){
+                ctrl.plug(plug);
+            }
+        }else{
+            console.writeOutput("%nWARNING: No InputControllers found on classpath.");            
+        }
+        
+        // activate/show splash screens
+        List<SplashScreen> screens = plug.getPluginsByType(SplashScreen.class);
+        if(screens != null && screens.size() > 0){
+            for(SplashScreen sc : screens){
+                sc.plug(plug);
+                sc.render(plug);
+            }
+        }
     }
     
+    private void startConsoleThread() {
+        new Thread(new Runnable() {
+            public void run() {
+                while (!Thread.interrupted()) {
+                    // reset command line arguments from previous command
+                    context.putValue(Context.KEY_COMMAND_LINE_ARGS, null);
+
+                    boolean handled = false;
+                    String line = console.readInput(prompt.getValue(context));
+
+                    if (line == null || line.trim().isEmpty()) {
+                        continue;
+                    }
+
+                    context.putValue(Context.KEY_COMMAND_LINE_INPUT, line);
+                    if (controllersExist()) {
+                        for (InputController controller : controllers) {
+                            Boolean enabled = controller.isEnabled();
+                            // let controller handle input line if enabled
+                            if(enabled){
+                                boolean ctrlResult = controller.handle(context);
+                                handled = handled || ctrlResult;
+                            }
+                        }
+                        // was command line handled.
+                        if (!handled) {
+                            console.writeOutput(String.format(
+                                "%nCommand unhandled." +
+                                "%nNo controllers found to handle [%s].%n", line));
+                        }
+                    } else {
+                        console.writeOutput(String.format("%nWarning: no controllers(s) found.%n"));
+                    }
+                }
+            }
+        }).start();
+    }
+
+    /**
+     * Are there any controllers installed?
+     *
+     * @param controllers
+     */
+    private boolean controllersExist() {
+        return (controllers != null && controllers.size() > 0) ? true : false;
+    }
+
 }

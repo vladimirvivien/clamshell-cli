@@ -23,7 +23,6 @@ import org.clamshellcli.api.Configurator;
 import org.clamshellcli.api.Context;
 import org.clamshellcli.api.IOConsole;
 import org.clamshellcli.core.AnInputController;
-import java.util.regex.Pattern;
 
 /**
  * A simple implementation of a InputController that echos back input send to the 
@@ -33,6 +32,7 @@ import java.util.regex.Pattern;
  * @author vladimir.vivien
  */
 public class EchoController extends AnInputController{
+    @Override
     public boolean handle(Context ctx) {
         boolean handled = false;
         IOConsole console = ctx.getIoConsole();
@@ -44,6 +44,7 @@ public class EchoController extends AnInputController{
         return handled;
     }
 
+    @Override
     public void plug(Context plug) {
         configureController(plug);
     }

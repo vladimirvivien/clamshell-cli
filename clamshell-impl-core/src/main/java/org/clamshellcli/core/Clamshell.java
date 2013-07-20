@@ -44,6 +44,8 @@ public final class Clamshell {
         private static Configurator config;
         private static ClassLoader pluginsCl;
         private static List<Plugin> plugins;
+        private static File libDir;
+        private static File pluginsDir;
         
         public static ShellContext getContext() {
             return (ctx == null) ? ctx = ShellContext.createInstance() : ctx;
@@ -62,27 +64,26 @@ public final class Clamshell {
         }
         
         /**
-         * Returns the class loader for the plugins directory specified by cli.dir.plugins.
+         * Returns the class loader for the plugins directory specified by cli.dir.plugins from config.
          * @param parentCl - a parent classloader to use.
          * @return 
          */
         public static ClassLoader getPluginsClassLoader(ClassLoader parentCl) {
             if(pluginsCl != null) return pluginsCl; // return if already loaded.
 
-            String pluginsDirName = getConfigurator().getPropertiesMap().get(ShellConfigurator.KEY_CONFIG_PLUGINSDIR);
-            File pluginsDir = new File(pluginsDirName);
-            if(pluginsDir.exists() && pluginsDir.isDirectory()){
+            if(getPluginsDir().exists() && getPluginsDir().isDirectory()){
                 try {
                     pluginsCl = Clamshell.ClassManager.createClassLoaderForPath(
-                        new File[]{pluginsDir},
+                        new File[]{getPluginsDir()},
                         parentCl
                     );
                 } catch (Exception ex) {
                    throw new RuntimeException(ex);
                 }
             }else{
-                throw new RuntimeException (String.format("Unable to find plugins directory "
-                        + "[%s]. Clamshell will stop.", pluginsDir.getAbsolutePath()));
+                throw new RuntimeException (String.format(
+                        "%nUnable to find plugins directory [%s]."
+                        + "%nClamshell can not run.  Exiting...", getPluginsDir().getAbsolutePath()));
             }
             return pluginsCl;
         }
@@ -119,6 +120,22 @@ public final class Clamshell {
                 }
             }
             return result;
+        }
+        
+        public static void setLibDir(File dir){
+            libDir = dir;
+        }
+        
+        public static File getLibDir() {
+            return (libDir != null) ? libDir : (libDir = new File(Configurator.VALUE_CONFIG_LIBDIR));
+        }
+        
+        public static void setPluginsDir(File dir){
+            pluginsDir = dir;
+        }
+        
+        public static File getPluginsDir() {
+            return (pluginsDir != null) ? pluginsDir : (pluginsDir = new File(Configurator.VALUE_CONFIG_PLUGINSDIR));
         }
     }
     

@@ -23,15 +23,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 
 /**
- * This is a generic implementation of the InputController.
- * It uses a simple InputController/Command pattern where the controller 
- * delegates handling of the input to Command objects.
- * 
- * First, when the component is plugged in, it creates an internal
- * map of all of the commands found on the classpath.  Each Command instance 
- * is mapped to its Action string as a key.
+ * This is a simple implementation of the InputController.
+ * It delegates handling of the input to Command plugins on the classpath.
+ * <p/>
+ * It creates an internal map of all of the commands found on the classpath.  
+ * Each Command instance is mapped to String[0] from the command line input string.
  * 
  * When the controller receives command-line value pulled with 
  * Context.KEY_INPUT_LINE value, it splits it. The first token found is used to 
@@ -46,7 +45,19 @@ import java.util.TreeSet;
  */
 public class CmdController extends AnInputController{
     private Map<String,Command> commands;
-
+    private String respondsToRegEx = "\\s*(exit|help|sysinfo|time)\\b.*";
+    private Pattern respondsTo;
+    
+    public CmdController() {
+        respondsTo = (super.respondsTo() != null) ?
+                super.respondsTo() : Pattern.compile(respondsToRegEx);
+    }
+    
+    @Override
+    public Pattern respondsTo() {
+        return respondsTo;
+    }
+    
     /**
      * Handles incoming command-line input.  CmdController first splits the
      * input and uses token[0] as the action name mapped to the Command.
@@ -56,8 +67,13 @@ public class CmdController extends AnInputController{
     public boolean handle(Context ctx) {
         String cmdLine = (String)ctx.getValue(Context.KEY_COMMAND_LINE_INPUT);
         boolean handled = false;
+
         // handle command line entry.  NOTE: value can be null
-        if(cmdLine != null && !cmdLine.trim().isEmpty()){
+        if(
+            cmdLine != null && 
+            !cmdLine.trim().isEmpty() &&
+            respondsTo.matcher(cmdLine).matches()
+        ){
             String[] tokens = cmdLine.trim().split("\\s+");
             if(!commands.isEmpty()){
                 Command cmd = commands.get(tokens[0]);
@@ -67,11 +83,11 @@ public class CmdController extends AnInputController{
                         ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, args);
                     }
                     cmd.execute(ctx);
-                    handled = true;
                 }else{
                     ctx.getIoConsole().writeOutput(String.format("%nCommand [%s] is unknown. "
-                            + "Type help for a list of installed commands.%n%n", tokens[0]));
+                            + "Type help for a list of installed commands.", tokens[0]));
                 }
+                handled = true;
             }
         }
         
@@ -85,7 +101,7 @@ public class CmdController extends AnInputController{
      */
     @Override
     public void plug(Context plug) {
-        super.plug(plug);
+        super.plug(plug); // read config for this controller.
         List<Command> sysCommands = plug.getCommandsByNamespace("syscmd");
         if(sysCommands.size() > 0){
             commands = plug.mapCommands(sysCommands);
@@ -95,9 +111,6 @@ public class CmdController extends AnInputController{
                 cmd.plug(plug);
                 cmdHints.addAll(collectInputHints(cmd));
             }
-
-            // save expected command input hints
-            setExpectedInputs(cmdHints.toArray(new String[0]));
             
         }else{
             plug.getIoConsole().writeOutput(

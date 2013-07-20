@@ -19,6 +19,7 @@
  */
 package org.clamshellcli.commons.test;
 
+import java.io.File;
 import org.clamshellcli.core.ShellConfigurator;
 import java.util.Map;
 import org.junit.After;
@@ -35,6 +36,7 @@ public class ShellConfiguratorTest {
     static {
         System.setProperty(ShellConfigurator.KEY_CONFIG_FILE, "../mock-env/conf/cli.config");
     }
+    
     ShellConfigurator config;
     
     public ShellConfiguratorTest() {
@@ -59,9 +61,16 @@ public class ShellConfiguratorTest {
     }
     
     @Test
-    public void testInstanceCreation() {
+    public void testDefaultInstanceCreation() {
         ShellConfigurator cfg = ShellConfigurator.createNewInstance();
         assert cfg != null : "Factory method not building instance";
+        assert cfg.getConfigFile().equals (new File(System.getProperty(ShellConfigurator.KEY_CONFIG_FILE)));
+    }
+    
+    public void testInstanceCreationWithArgument() {
+        ShellConfigurator cfg = ShellConfigurator.createNewInstance("./cfg.config");
+        assert cfg != null;
+        assert cfg.getConfigFile().equals(new File("./cfg.config"));
     }
 
     
@@ -79,8 +88,6 @@ public class ShellConfiguratorTest {
         Map<String,String> props = config.getPropertiesMap();
         assert props != null;
         assert props.size() == 2;
-        assert props.containsKey(ShellConfigurator.KEY_CONFIG_LIBIDR);
-        assert props.containsKey(ShellConfigurator.KEY_CONFIG_PLUGINSDIR);
     }
     
     @Test
