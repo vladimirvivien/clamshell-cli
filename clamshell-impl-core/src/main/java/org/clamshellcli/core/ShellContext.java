@@ -29,8 +29,12 @@ import java.util.Map;
 import java.util.logging.Logger;
 import org.clamshellcli.api.Configurator;
 import org.clamshellcli.api.Context;
+import static org.clamshellcli.api.Context.KEY_CONSOLE_COMPONENT;
+import static org.clamshellcli.api.Context.KEY_SHELL_COMPONENT;
+import org.clamshellcli.api.InputController;
 import org.clamshellcli.api.Plugin;
 import org.clamshellcli.api.Shell;
+import org.clamshellcli.api.SplashScreen;
 
 /**
  * Implementation of the Context used to provide shell information at runtime.
@@ -39,9 +43,6 @@ import org.clamshellcli.api.Shell;
 public class ShellContext implements Context{
     private static final Logger log = Logger.getLogger(ShellContext.class.getName());
     private Map<String, Object> values;
-    private Shell shell;
-    private IOConsole console;
-    private Prompt prompt;
     private List<Command> commands;
 
     /**
@@ -141,27 +142,33 @@ public class ShellContext implements Context{
      */
     @Override
     public Shell getShell() {
+        Shell shell = (Shell) values.get(KEY_SHELL_COMPONENT);
         if(shell != null) return shell;
         List<Shell> shells = Clamshell.Runtime.getPluginsByType(Shell.class);
         shell = (shells.size() > 0) ? shells.get(0) : null;
+        values.put(KEY_SHELL_COMPONENT, shell);
         return shell;
     }
     
 
     @Override
     public IOConsole getIoConsole() {
-        if(console != null) return console;
-        List<IOConsole> consoles = Clamshell.Runtime.getPluginsByType(IOConsole.class);
-        console = (consoles.size() > 0) ? consoles.get(0) : null;
-        return console;
+        return (IOConsole) values.get(KEY_CONSOLE_COMPONENT);
     }
 
     @Override
     public Prompt getPrompt() {
-        if(prompt != null) return prompt;
-        List<Prompt> prompts = Clamshell.Runtime.getPluginsByType(Prompt.class);
-        prompt = (prompts.size() > 0) ? prompts.get(0) : new DefaultPrompt();
-        return prompt;
+        return (Prompt)values.get(KEY_PROMPT_COMPONENT);
+    }
+    
+    @Override
+    public List<InputController> getControllers() {
+        return (List<InputController>) values.get(KEY_CONTROLLERS);
+    }
+    
+    @Override
+    public List<SplashScreen> getSplashScreens() {
+        return (List<SplashScreen>) values.get(KEY_SPLASH_SCREENS);
     }
 
     @Override
@@ -193,14 +200,5 @@ public class ShellContext implements Context{
             }
         }
         return cmdMap;
-    }
-    
-    private class DefaultPrompt implements Prompt{
-        private final String value = System.getProperty("user.name") + "> ";
-        @Override
-        public String getValue(Context ctx) {
-            return value;
-        }
-        public void plug(Context plug) {}
-    }
+    }    
 }

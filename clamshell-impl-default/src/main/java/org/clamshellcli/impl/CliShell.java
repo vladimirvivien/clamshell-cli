@@ -19,7 +19,10 @@ import org.clamshellcli.api.Context;
 import org.clamshellcli.api.IOConsole;
 import org.clamshellcli.api.Shell;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
+import org.clamshellcli.api.Configurator;
+import static org.clamshellcli.api.Context.*;
 import org.clamshellcli.api.InputController;
 import org.clamshellcli.api.Prompt;
 import org.clamshellcli.api.SplashScreen;
@@ -67,32 +70,37 @@ public class CliShell implements Shell{
      */
     @Override
     public void plug(Context plug) {
+        context = plug;
         loadComponents(plug);
         startConsoleThread();
     }
     
+    /**
+     * Load components.  
+     * Create default where possible if none found on classpath.
+     * @param plug 
+     */
     private void loadComponents(Context plug) {
         context = plug;
         
-        prompt = plug.getPrompt();
+        // Load prompt component
+        List<Prompt> prompts = Clamshell.Runtime.getPluginsByType(Prompt.class);
+        prompt = (prompts.size() > 0) ? prompts.get(0) : new DefaultPrompt();
         prompt.plug(plug);
+        plug.putValue(KEY_PROMPT_COMPONENT, prompt); // save for later use.     
         
-        // setup Console, if none found, create default.
-        console = plug.getIoConsole();
-        if(console == null){            
-            throw new RuntimeException(
-                String.format("%nUnable to find required IOConsole component in"
-                + " plugins directory [%s]."
-                + "Exiting...%n", Clamshell.Runtime.getPluginsDir())
-            );
-        }
+        // Load IOConsole Component
+        List<IOConsole> consoles = Clamshell.Runtime.getPluginsByType(IOConsole.class);
+        console = (consoles.size() > 0) ? consoles.get(0) : new CliConsole();
         console.plug(plug);
-        
+        plug.putValue(KEY_CONSOLE_COMPONENT, console);
 
         // activate controllers
-        controllers = plug.getPluginsByType(InputController.class); 
+        controllers = plug.getPluginsByType(InputController.class);
         if(controllers.size() > 0){
+            plug.putValue(KEY_CONTROLLERS, plug);
             for (InputController ctrl : controllers){
+                configureController(ctrl);
                 ctrl.plug(plug);
             }
         }else{
@@ -102,6 +110,7 @@ public class CliShell implements Shell{
         // activate/show splash screens
         List<SplashScreen> screens = plug.getPluginsByType(SplashScreen.class);
         if(screens != null && screens.size() > 0){
+            plug.putValue(KEY_SPLASH_SCREENS, screens);
             for(SplashScreen sc : screens){
                 sc.plug(plug);
                 sc.render(plug);
@@ -111,6 +120,7 @@ public class CliShell implements Shell{
     
     private void startConsoleThread() {
         new Thread(new Runnable() {
+            @Override
             public void run() {
                 while (!Thread.interrupted()) {
                     // reset command line arguments from previous command
@@ -155,5 +165,26 @@ public class CliShell implements Shell{
     private boolean controllersExist() {
         return (controllers != null && controllers.size() > 0) ? true : false;
     }
-
+    
+    private void configureController (InputController controller){
+        String ctrlClassName = this.getClass().getName();
+        Configurator config = context.getConfigurator();
+        
+        Map<String,Map<String,? extends Object>> ctrlsMap = 
+                (Map<String,Map<String,? extends Object>>) config.getControllersMap();
+        
+        if(ctrlsMap != null){
+            Map<String, Object> map = (Map<String, Object>) ctrlsMap.get(ctrlClassName);
+            if(map != null){
+                String inputPattern = (String) map.get("inputPattern");
+                Pattern pattern = (inputPattern != null) ? 
+                        Pattern.compile(inputPattern) : 
+                        Pattern.compile(".*");
+                controller.setInputPattern(pattern);
+                String flag = (String)map.get("enabled");
+                Boolean enabled = Boolean.valueOf((flag != null) ? flag : "true");
+                controller.setEnabled(enabled);
+            }
+        }        
+    }
 }

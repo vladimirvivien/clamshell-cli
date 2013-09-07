@@ -35,14 +35,15 @@ import java.util.regex.Pattern;
  */
 public abstract class AnInputController implements InputController{
     private Pattern pattern;
-    private List<String> expectedInputs;
-    private Boolean enabled = new Boolean(true);
+    private Boolean enabled = Boolean.TRUE;
     
     @Override
     public Boolean isEnabled(){
         return enabled;
     }
-    protected void setEnabled(Boolean flag){
+    
+    @Override
+    public void setEnabled(Boolean flag){
         enabled = flag;
     }
     
@@ -51,36 +52,9 @@ public abstract class AnInputController implements InputController{
         return pattern;
     }
     
-    public void setRespondsTo(Pattern p){
-        pattern = p;
-    }
-    
-    /**
-     * This implementation calls configureController() internally!
-     * @param plug 
-     */
     @Override
-    public void plug(Context plug){
-        configureController(plug);
-    }
-    
-    protected void configureController (Context ctx){
-        String ctrlClassName = this.getClass().getName();
-        Configurator config = ctx.getConfigurator();
-        
-        Map<String,Map<String,? extends Object>> ctrlsMap = 
-                (Map<String,Map<String,? extends Object>>) config.getControllersMap();
-        
-        if(ctrlsMap != null){
-            Map<String, Object> map = (Map<String, Object>) ctrlsMap.get(ctrlClassName);
-            if(map != null){
-                String inputPattern = (String) map.get("inputPattern");
-                pattern = (inputPattern != null) ? Pattern.compile(inputPattern) : null;
-
-                String flag = (String)map.get("enabled");
-                enabled = Boolean.valueOf((flag != null) ? flag : "true");
-            }
-        }
+    public void setInputPattern(Pattern p){
+        pattern = p;
     }
     
     /**

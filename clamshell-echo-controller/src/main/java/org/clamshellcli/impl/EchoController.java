@@ -46,7 +46,6 @@ public class EchoController extends AnInputController{
 
     @Override
     public void plug(Context plug) {
-        configureController(plug);
     }
     
 }

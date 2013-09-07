@@ -47,6 +47,12 @@ public interface InputController extends Plugin{
      * @return 
      */
     public Pattern respondsTo();
+    
+    /**
+     * A method to set command-line pattern this controller handles.
+     * @param p 
+     */
+    public void setInputPattern(Pattern p);
         
     /**
      * A flag that indicates if the controller is enabled and should participate
@@ -54,4 +60,10 @@ public interface InputController extends Plugin{
      * @return 
      */
     public Boolean isEnabled();
+    
+    /**
+     * Sets enabled-flag.  When true, controller will receive handling call.
+     * @param flag 
+     */
+    public void setEnabled(Boolean flag);
 }

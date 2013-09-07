@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.clamshellcli.api.InputController;
+import org.clamshellcli.api.SplashScreen;
 
 /**
  * This class provides a mock context useful for testing.
@@ -116,4 +118,14 @@ public final class MockContext implements Context
     public Map<String, Command> mapCommands(List<Command> commands) {
         throw new UnsupportedOperationException("Not supported yet.");
     }    
+
+    @Override
+    public List<InputController> getControllers() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public List<SplashScreen> getSplashScreens() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

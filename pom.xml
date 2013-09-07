@@ -102,12 +102,12 @@
     
     <modules>
         <module>clamshell-api</module>
+        <module>clamshell-test</module>
         <module>clamshell-impl-core</module>
         <module>clamshell-impl-default</module>
         <module>clamshell-impl-splashscreen</module>
         <module>clamshell-time-command</module>
         <module>clamshell-launcher</module>
-        <module>clamshell-test</module>
         <module>clamshell-echo-controller</module>
         <module>project-assembler</module>
   </modules>

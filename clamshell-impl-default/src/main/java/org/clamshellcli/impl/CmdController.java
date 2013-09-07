@@ -45,7 +45,7 @@ import java.util.regex.Pattern;
  */
 public class CmdController extends AnInputController{
     private Map<String,Command> commands;
-    private String respondsToRegEx = "\\s*(exit|help|sysinfo|time)\\b.*";
+    private String respondsToRegEx = "(.*)\\b"; 
     private Pattern respondsTo;
     
     public CmdController() {
@@ -60,7 +60,8 @@ public class CmdController extends AnInputController{
     
     /**
      * Handles incoming command-line input.  CmdController first splits the
-     * input and uses token[0] as the action name mapped to the Command.
+     * input into token[N] tokens.  It uses token[0] as the action name mapped 
+     * to the Command.
      * @param ctx the shell context.
      */
     @Override
@@ -101,7 +102,6 @@ public class CmdController extends AnInputController{
      */
     @Override
     public void plug(Context plug) {
-        super.plug(plug); // read config for this controller.
         List<Command> sysCommands = plug.getCommandsByNamespace("syscmd");
         if(sysCommands.size() > 0){
             commands = plug.mapCommands(sysCommands);

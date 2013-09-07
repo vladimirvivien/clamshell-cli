@@ -45,7 +45,32 @@ public interface Context{
     /**
      * Key to retrieve prompt value from the context store.
      */
-    public static final String kEY_PROMPT_VALUE = "key.promptValue";
+    public static final String KEY_PROMPT_VALUE = "key.promptValue";
+    
+    /**
+     * Key to a Shell instance
+     */
+    public static final String KEY_SHELL_COMPONENT = "key.shellComponent";
+    
+    /**
+     * Key to IOConsole instance
+     */
+    public static final String KEY_CONSOLE_COMPONENT = "key.consoleComponent";
+    
+    /**
+     * Key to store Prompt instance
+     */
+    public static final String KEY_PROMPT_COMPONENT = "key.promptComponent";
+    
+    /**
+     * Key to store loaded controllers
+     */
+    public static final String KEY_CONTROLLERS = "key.controllers";
+    
+    /**
+     * Key to store loaded splash screen
+     */
+    public static final String KEY_SPLASH_SCREENS = "key.splashScreens";
     
     /**
      * Key to retrieve instance of InputStream;
@@ -130,6 +155,18 @@ public interface Context{
      */
     public <T> List<T> getPluginsByType(Class<T> type);
     
+    
+    /***
+     * Returns a list of loaded controllers.
+     * @return 
+     */
+    public List<InputController> getControllers();
+    
+    /**
+     * Returns list of loaded splash screens;
+     * @return 
+     */
+    public List<SplashScreen> getSplashScreens();
     
     /**
      * A convenience method that retrieves a list of Command plugins.

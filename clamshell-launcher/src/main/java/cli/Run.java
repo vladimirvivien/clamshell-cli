@@ -83,20 +83,21 @@ public class Run {
                 try{
                     shell.plug(context);
                 }catch(Exception ex){
-                    ex.printStackTrace();
                     System.out.printf("%nSomething went wrong:%n%s%n", ex.getMessage());
                 }
             }else{
                 System.out.printf (
                     "%nNo Shell component found in plugins directory." +
                     "%nA Shell instance must be on the classpath." +
-                    "%nExiting now.");
+                    "%nExiting now."
+                );
                 System.exit(1);
             }
         }else{
             System.out.printf (
-                "%nNo plugins found in found in the plugins directory. " +
-                "%nClamShell-Cli will exit now.");
+                "%nNo plugins found in the plugins directory. " +
+                "%nClamShell-Cli will exit now."
+            );
             System.exit(1);
         }
     }
