@@ -1,3 +1,5 @@
-org.clamshellcli.test.MockCommand
 org.clamshellcli.test.MockConsole
 org.clamshellcli.test.MockShell
+org.clamshellcli.test.MockSplashScreen
+org.clamshellcli.test.MockPrompt
+org.clamshellcli.test.MockInputController

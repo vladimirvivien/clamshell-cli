@@ -115,7 +115,7 @@ public class ShellContextTest {
     public void testGetPlugins(){
         List<Plugin> plugins = context.getPlugins();
         assert plugins != null;
-        assert plugins.size() == 3;
+        assert plugins.size() == 5;
     }
     
     @Test

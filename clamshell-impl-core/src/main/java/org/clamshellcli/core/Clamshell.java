@@ -26,8 +26,9 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import org.clamshellcli.api.Command;
 import org.clamshellcli.api.Configurator;
 import org.clamshellcli.api.Plugin;
 
@@ -56,14 +57,6 @@ public final class Clamshell {
         }
         
         /**
-         * Returns the plugins classloader, uses the current thread's a s parent.
-         * @return 
-         */
-        public static ClassLoader getPluginsClassLoader() {
-            return getPluginsClassLoader(Thread.currentThread().getContextClassLoader());
-        }
-        
-        /**
          * Returns the class loader for the plugins directory specified by cli.dir.plugins from config.
          * @param parentCl - a parent classloader to use.
          * @return 
@@ -73,7 +66,7 @@ public final class Clamshell {
 
             if(getPluginsDir().exists() && getPluginsDir().isDirectory()){
                 try {
-                    pluginsCl = Clamshell.ClassManager.createClassLoaderForPath(
+                    pluginsCl = Clamshell.ClassManager.createClassLoaderFromFiles(
                         new File[]{getPluginsDir()},
                         parentCl
                     );
@@ -96,13 +89,12 @@ public final class Clamshell {
          */
         public static List<Plugin> getPlugins() {
             if(plugins != null) return plugins;
-            
-            ServiceLoader<Plugin> pluginClasses = ServiceLoader.load(Plugin.class, getPluginsClassLoader());
-            plugins = new ArrayList();
-            for (Plugin e : pluginClasses) {
-                plugins.add(e);
-            }
-            
+            plugins = loadServicePlugins(
+                Plugin.class, 
+                getPluginsClassLoader(
+                    Thread.currentThread().getContextClassLoader()
+                )
+            );
             return plugins;
         }
         
@@ -120,6 +112,23 @@ public final class Clamshell {
                 }
             }
             return result;
+        }
+        
+        /**
+         * This function loads/returns all Classes of type T from classpath.
+         * It uses Java's ServiceProvider architecture to locate specified type.
+         * @param <T>
+         * @param type
+         * @param parent
+         * @return 
+         */
+        public static <T> List<T> loadServicePlugins(Class<T> type, ClassLoader parent) {
+             ServiceLoader<T> loadedTypes = ServiceLoader.load(type, parent);
+             List<T> result = new ArrayList<T>();
+             for(T t : loadedTypes){
+                 result.add(t);
+             }
+             return result;
         }
         
         public static void setLibDir(File dir){
@@ -145,45 +154,80 @@ public final class Clamshell {
     public static class ClassManager{
         
         /**
-         * Creates a class loader object based on a physical locations provided.
-         * @param paths an array of File paths where classes are located
-         * @param parent the parent loader associated with this call.
-         * @return ClassManager instance
-         * @throws Exception if something goes horribly wrong.
+         * Creates a classloader by searching for specified files in given
+         * search directories.
+         * @param searchPaths directory or files to add to class loaer.  If DIR 
+         * search content of the dir that maches expression.  if FILE and matches
+         * expression, add to classloader.
+         * @param filePattern regex pattern used to match filename.
+         * @param parent parent class loader
+         * @return
+         * @throws Exception 
          */
-        public static ClassLoader createClassLoaderForPath(File[] paths, ClassLoader parent) throws Exception {
-            File[] filePaths = correctPaths(paths);
+        public static ClassLoader getClassLoaderFromFiles(final File[] filePaths, final Pattern filePattern, final ClassLoader parent) throws Exception {
             List<URL> classpath = new ArrayList<URL>();
+            
             for(int i = 0; i < filePaths.length; i++){
                 File filePath = filePaths[i].getCanonicalFile();
-                if (!filePath.exists()) {
-                    log.log(Level.WARNING,"Path [{0}] does not exist."
-                            + "  It will not be added to classpath", filePath.getCanonicalPath());
-                    continue;
-                }
-                if (filePath.exists() && !filePath.isDirectory()) {
-                    log.log(Level.WARNING,"Path [{0}] is not a directory."
-                            + "  It will not be added to classpath", filePath.getCanonicalPath());
+                
+                // if file is FILE and matches search, add to classloader
+                if (filePath.isFile() && 
+                    filePattern.matcher(filePath.getName()).matches()) {
+                    classpath.add(filePath.toURI().toURL());
                     continue;
                 }                
                 
-                // retrieve jar files from direction i
-                File[] files = filePath.listFiles(new FileFilter() {
-                    public boolean accept(File file) {
-                        return file.getName().endsWith(".jar");
-                    }
-                });
+                // if directory, search all matching files to add to classloader
+                if(filePath.isDirectory()){
+                    File[] files = filePath.listFiles(new FileFilter() {
+                        @Override
+                        public boolean accept(File file) {
+                            return filePattern.matcher(file.getName()).matches();
+                        }
+                    });
 
-                for (int j = 0; j < files.length; j++) {
-                    URL url = files[j].toURI().toURL();
-                    log.log(Level.FINE, "Added file {0} to classpath.", url);
-                    classpath.add(url);
+                    for (int j = 0; j < files.length; j++) {
+                        URL url = files[j].toURI().toURL();
+                        classpath.add(url);
+                    }
                 }
             }
 
             URL[] urls = new URL[classpath.size()];
             ClassLoader cl = new URLClassLoader(classpath.toArray(urls), parent);
             return cl;
+        }
+        
+        
+        /**
+         * Creates classloader from directories.  The specified directory must
+         * contain class files that will be searched by the ClassLoader
+         * @param dirs directories to be used for class loading
+         * @param parent parent directory
+         * @return ClassLoader
+         * @throws Exception 
+         */
+        public static ClassLoader getClassLoaderFromDirs(File[] dirs, ClassLoader parent) throws Exception {
+            File[] fileDirs = correctPaths(dirs);
+            List<URL> classpath = new ArrayList<URL>();
+            for(int i = 0 ; i < fileDirs.length; i++){
+                File f = fileDirs[i];
+                if(f.isDirectory()){
+                    classpath.add(fileDirs[i].toURI().toURL());
+                }
+            }
+            return new URLClassLoader(classpath.toArray(new URL[classpath.size()]), parent);
+        }
+        
+        /**
+         * Creates ClassLoader instance from files searched in provided directories. 
+         * @param paths directories to search for files to include in ClassLoader
+         * @param parent parent class loader
+         * @return ClassLoader
+         * @throws Exception 
+         */
+        public static ClassLoader createClassLoaderFromFiles(File[] paths, ClassLoader parent) throws Exception{
+            return getClassLoaderFromFiles(paths, Pattern.compile(".*\\.jar"),parent);
         }
 
         /**

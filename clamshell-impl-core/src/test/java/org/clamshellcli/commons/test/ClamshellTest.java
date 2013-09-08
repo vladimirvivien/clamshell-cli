@@ -23,15 +23,24 @@ import org.clamshellcli.api.Plugin;
 import org.clamshellcli.core.Clamshell;
 import java.io.File;
 import java.util.List;
+import java.util.regex.Pattern;
+import org.clamshellcli.api.Command;
+import org.clamshellcli.api.Prompt;
+import org.clamshellcli.api.Shell;
+import org.clamshellcli.core.Clamshell.ClassManager;
 import org.clamshellcli.core.ShellConfigurator;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
- *
+ * These tests are dependent on project clamshell-test.
+ * Ensure that clamshell-test is packaged to produce 
+ * file ./mock-env/clamshell-cli-***.jar
+ * 
  * @author vvivien
  */
 public class ClamshellTest {
@@ -56,20 +65,38 @@ public class ClamshellTest {
     @After
     public void tearDown() {
     }
-    
+        
     @Test
-    public void testRuntimeLoadPlugins() throws Exception{  
-        List<Plugin> plugins = Clamshell.Runtime.getPlugins();
-        assert plugins.size() >= 3;
+    public void testClassManager_GetClassLoaderFromFiles() throws Exception{
+        ClassLoader cl = ClassManager.getClassLoaderFromFiles(
+            new File[]{new File("../mock-env/plugins")}, 
+            Pattern.compile(".*\\.jar"), 
+            Thread.currentThread().getContextClassLoader());
+        
+        Assert.assertNotNull(cl);
+        Assert.assertNotNull(cl.loadClass("org.clamshellcli.test.MockShell"));
     }
     
     @Test
-    /**
-     * This test will fail (classNotFound) if mock-env/plugins/ is empty.
-     * Run project clamshellcli-test to put pluings at that location.
-     */
-    public void testCreateClassLoaderForPath() throws Exception{
-        ClassLoader cl = Clamshell.ClassManager.createClassLoaderForPath(
+    public void testClassManager_GetClassLoaderFromDirs() throws Exception{
+        ClassLoader cl = ClassManager.getClassLoaderFromDirs(
+            new File[]{new File("./target/classes")},
+            Thread.currentThread().getContextClassLoader()
+        );
+        
+        Assert.assertNotNull(cl);
+        Assert.assertNotNull(cl.loadClass("org.clamshellcli.core.Clamshell"));
+    }
+    
+//    @Test
+//    public void testRuntimeLoadPlugins() throws Exception{  
+//        List<Plugin> plugins = Clamshell.Runtime.getPlugins();
+//        Assert.assertEquals(plugins.size(),5);
+//    }
+    
+    @Test
+    public void test() throws Exception{
+        ClassLoader cl = Clamshell.ClassManager.createClassLoaderFromFiles(
             new File[]{new File("../mock-env/plugins")}, 
             Thread.currentThread().getContextClassLoader());
         
@@ -77,4 +104,54 @@ public class ClamshellTest {
         Object o = cl.loadClass("org.clamshellcli.test.MockShell");
         assert o != null;
     }
+    
+    
+    @Test
+    public void testLoadServicePlugins_Plugins() throws Exception{
+        ClassLoader parent = ClassManager.getClassLoaderFromFiles(
+            new File[]{new File("../mock-env/plugins")}, 
+            Pattern.compile(".*\\.jar"), 
+            Thread.currentThread().getContextClassLoader()
+        );
+        List<Plugin> plugins = Clamshell.Runtime.loadServicePlugins(Plugin.class, parent);
+        Assert.assertTrue(!plugins.isEmpty());
+        Assert.assertEquals(5, plugins.size());
+    }
+    
+    @Test
+    public void testLoadServicePlugins_Shells() throws Exception{
+        ClassLoader parent = ClassManager.getClassLoaderFromFiles(
+            new File[]{new File("../mock-env/plugins")}, 
+            Pattern.compile(".*\\.jar"), 
+            Thread.currentThread().getContextClassLoader()
+        );
+        List<Shell> shells = Clamshell.Runtime.loadServicePlugins(Shell.class, parent);
+        Assert.assertTrue(!shells.isEmpty());
+        Assert.assertEquals(1, shells.size());
+    }
+    
+    @Test
+    public void testLoadServicePlugins_Prompts() throws Exception{
+        ClassLoader parent = ClassManager.getClassLoaderFromFiles(
+            new File[]{new File("../mock-env/plugins")}, 
+            Pattern.compile(".*\\.jar"), 
+            Thread.currentThread().getContextClassLoader()
+        );
+        List<Prompt> prompts = Clamshell.Runtime.loadServicePlugins(Prompt.class, parent);
+        Assert.assertTrue(!prompts.isEmpty());
+        Assert.assertEquals(1, prompts.size());
+    }
+    
+    @Test
+    public void testLoadServicePlugins_Commands() throws Exception{
+        ClassLoader parent = ClassManager.getClassLoaderFromFiles(
+            new File[]{new File("../mock-env/plugins")}, 
+            Pattern.compile(".*\\.jar"), 
+            Thread.currentThread().getContextClassLoader()
+        );
+        List<Command> commands = Clamshell.Runtime.loadServicePlugins(Command.class, parent);
+        Assert.assertTrue(!commands.isEmpty());
+        Assert.assertEquals(2, commands.size());
+    }
+
 }
