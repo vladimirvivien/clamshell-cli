@@ -43,10 +43,6 @@ public final class Clamshell {
     public static class Runtime {
         private static ShellContext ctx;
         private static Configurator config;
-        private static ClassLoader pluginsCl;
-        private static List<Plugin> plugins;
-        private static File libDir;
-        private static File pluginsDir;
         
         public static ShellContext getContext() {
             return (ctx == null) ? ctx = ShellContext.createInstance() : ctx;
@@ -55,65 +51,7 @@ public final class Clamshell {
         public static Configurator getConfigurator () {
             return (config == null) ? config = ShellConfigurator.createNewInstance(): config;
         }
-        
-        /**
-         * Returns the class loader for the plugins directory specified by cli.dir.plugins from config.
-         * @param parentCl - a parent classloader to use.
-         * @return 
-         */
-        public static ClassLoader getPluginsClassLoader(ClassLoader parentCl) {
-            if(pluginsCl != null) return pluginsCl; // return if already loaded.
-
-            if(getPluginsDir().exists() && getPluginsDir().isDirectory()){
-                try {
-                    pluginsCl = Clamshell.ClassManager.createClassLoaderFromFiles(
-                        new File[]{getPluginsDir()},
-                        parentCl
-                    );
-                } catch (Exception ex) {
-                   throw new RuntimeException(ex);
-                }
-            }else{
-                throw new RuntimeException (String.format(
-                        "%nUnable to find plugins directory [%s]."
-                        + "%nClamshell can not run.  Exiting...", getPluginsDir().getAbsolutePath()));
-            }
-            return pluginsCl;
-        }
-        
-        
-        /**
-         * Retrieve all Plugin.class instances from specified plugins classloader.
-         * @param cl a ClassLoader that provides a v
-         * @return List of Plugin instances.
-         */
-        public static List<Plugin> getPlugins() {
-            if(plugins != null) return plugins;
-            plugins = loadServicePlugins(
-                Plugin.class, 
-                getPluginsClassLoader(
-                    Thread.currentThread().getContextClassLoader()
-                )
-            );
-            return plugins;
-        }
-        
-        /**
-         * etrieves a list of Class instances using the provided Type.
-         * @param <T> type filter
-         * @param type type
-         * @return list of instances of type <T>
-         */
-        public static <T> List<T> getPluginsByType(Class<T> type) {
-            List<T> result = new ArrayList<T>();
-            for (Plugin p : getPlugins()) {
-                if (type.isAssignableFrom(p.getClass())) {
-                    result.add((T) p);
-                }
-            }
-            return result;
-        }
-        
+                
         /**
          * This function loads/returns all Classes of type T from classpath.
          * It uses Java's ServiceProvider architecture to locate specified type.
@@ -130,21 +68,30 @@ public final class Clamshell {
              }
              return result;
         }
-        
-        public static void setLibDir(File dir){
-            libDir = dir;
+
+        /**
+         * Filters the provided list using the specified type.
+         * @param <T> The type provided.
+         * @param services
+         * @param type
+         * @return 
+         */
+        public static <T> List<T> filterPluginsByType(List<? extends Plugin> services, Class<T> type) {
+            List<T> result = new ArrayList<T>();
+            for (Plugin p : services) {
+                if (type.isAssignableFrom(p.getClass())) {
+                    result.add((T) p);
+                }
+            }
+            return result;
         }
         
         public static File getLibDir() {
-            return (libDir != null) ? libDir : (libDir = new File(Configurator.VALUE_CONFIG_LIBDIR));
-        }
-        
-        public static void setPluginsDir(File dir){
-            pluginsDir = dir;
+            return new File(Configurator.VALUE_CONFIG_LIBDIR);
         }
         
         public static File getPluginsDir() {
-            return (pluginsDir != null) ? pluginsDir : (pluginsDir = new File(Configurator.VALUE_CONFIG_PLUGINSDIR));
+            return new File(Configurator.VALUE_CONFIG_PLUGINSDIR);
         }
     }
     

@@ -82,39 +82,40 @@ public class CliShell implements Shell{
      */
     private void loadComponents(Context plug) {
         context = plug;
-        
         // Load prompt component
-        List<Prompt> prompts = Clamshell.Runtime.getPluginsByType(Prompt.class);
+        List<Prompt> prompts = context.getPluginsByType(Prompt.class);
         prompt = (prompts.size() > 0) ? prompts.get(0) : new DefaultPrompt();
         prompt.plug(plug);
-        plug.putValue(KEY_PROMPT_COMPONENT, prompt); // save for later use.     
+        context.putValue(KEY_PROMPT_COMPONENT, prompt); // save for later use.     
         
         // Load IOConsole Component
-        List<IOConsole> consoles = Clamshell.Runtime.getPluginsByType(IOConsole.class);
+        context.putValue(Context.KEY_INPUT_STREAM, System.in);
+        context.putValue(Context.KEY_OUTPUT_STREAM, System.out);
+        List<IOConsole> consoles = context.getPluginsByType(IOConsole.class);
         console = (consoles.size() > 0) ? consoles.get(0) : new CliConsole();
         console.plug(plug);
-        plug.putValue(KEY_CONSOLE_COMPONENT, console);
+        context.putValue(KEY_CONSOLE_COMPONENT, console);
+        
+        // activate/show splash screens
+        List<SplashScreen> screens = context.getPluginsByType(SplashScreen.class);
+        if(screens != null && screens.size() > 0){
+            context.putValue(KEY_SPLASH_SCREENS, screens);
+            for(SplashScreen sc : screens){
+                sc.plug(plug);
+                sc.render(plug);
+            }
+        }
 
         // activate controllers
-        controllers = plug.getPluginsByType(InputController.class);
+        controllers = context.getPluginsByType(InputController.class);
         if(controllers.size() > 0){
-            plug.putValue(KEY_CONTROLLERS, plug);
+            context.putValue(KEY_CONTROLLERS, plug);
             for (InputController ctrl : controllers){
                 configureController(ctrl);
                 ctrl.plug(plug);
             }
         }else{
             console.writeOutput("%nWARNING: No InputControllers found on classpath.");            
-        }
-        
-        // activate/show splash screens
-        List<SplashScreen> screens = plug.getPluginsByType(SplashScreen.class);
-        if(screens != null && screens.size() > 0){
-            plug.putValue(KEY_SPLASH_SCREENS, screens);
-            for(SplashScreen sc : screens){
-                sc.plug(plug);
-                sc.render(plug);
-            }
         }
     }
     

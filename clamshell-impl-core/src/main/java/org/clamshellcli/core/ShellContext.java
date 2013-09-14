@@ -43,7 +43,6 @@ import org.clamshellcli.api.SplashScreen;
 public class ShellContext implements Context{
     private static final Logger log = Logger.getLogger(ShellContext.class.getName());
     private Map<String, Object> values;
-    private List<Command> commands;
 
     /**
      * Creates an instance of ShellContext.
@@ -122,7 +121,7 @@ public class ShellContext implements Context{
      */
     @Override
     public List<Plugin> getPlugins(){
-        return Clamshell.Runtime.getPlugins();
+        return (List<Plugin>) values.get(KEY_PLUGINS);
     }
     
     /**
@@ -133,7 +132,16 @@ public class ShellContext implements Context{
      */
     @Override
     public <T> List<T> getPluginsByType(Class<T> type) {
-        return Clamshell.Runtime.getPluginsByType(type);
+        return Clamshell.Runtime.filterPluginsByType(getPlugins(),type);
+    }
+    
+    /**
+     * Returns the cli's context classloader.
+     * @return 
+     */
+    @Override
+    public ClassLoader getClassLoader() {
+        return (ClassLoader) values.get(KEY_CLASS_LOADER);
     }
     
     /**
@@ -142,12 +150,7 @@ public class ShellContext implements Context{
      */
     @Override
     public Shell getShell() {
-        Shell shell = (Shell) values.get(KEY_SHELL_COMPONENT);
-        if(shell != null) return shell;
-        List<Shell> shells = Clamshell.Runtime.getPluginsByType(Shell.class);
-        shell = (shells.size() > 0) ? shells.get(0) : null;
-        values.put(KEY_SHELL_COMPONENT, shell);
-        return shell;
+        return (Shell) values.get(KEY_SHELL_COMPONENT);
     }
     
 
@@ -173,14 +176,12 @@ public class ShellContext implements Context{
 
     @Override
     public List<Command> getCommands() {
-        if(commands != null) return commands;
-        commands = Clamshell.Runtime.getPluginsByType(Command.class);
-        return commands;
+        return (List<Command>) values.get(KEY_COMMANDS);
     }
     
     @Override
     public List<Command> getCommandsByNamespace(String namespace){
-        List<Command> result   = new ArrayList();
+        List<Command> result = new ArrayList();
         for(Command cmd: getCommands()){
             Command.Descriptor desc = cmd.getDescriptor();
             if(desc != null && desc.getNamespace().equals(namespace)){

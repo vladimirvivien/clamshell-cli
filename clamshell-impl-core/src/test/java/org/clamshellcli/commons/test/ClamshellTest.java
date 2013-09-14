@@ -25,6 +25,7 @@ import java.io.File;
 import java.util.List;
 import java.util.regex.Pattern;
 import org.clamshellcli.api.Command;
+import org.clamshellcli.api.InputController;
 import org.clamshellcli.api.Prompt;
 import org.clamshellcli.api.Shell;
 import org.clamshellcli.core.Clamshell.ClassManager;
@@ -50,8 +51,6 @@ public class ClamshellTest {
     @BeforeClass
     public static void setUpClass() throws Exception {
         System.setProperty(ShellConfigurator.KEY_CONFIG_FILE, "../mock-env/conf/cli.config");
-        Clamshell.Runtime.setLibDir(new File("../mock-env/lib"));
-        Clamshell.Runtime.setPluginsDir(new File("../mock-env/plugins"));
     }
 
     @AfterClass
@@ -152,6 +151,23 @@ public class ClamshellTest {
         List<Command> commands = Clamshell.Runtime.loadServicePlugins(Command.class, parent);
         Assert.assertTrue(!commands.isEmpty());
         Assert.assertEquals(2, commands.size());
+    }
+    
+    @Test
+    public void testFilterPluginsByType() throws Exception{
+        ClassLoader parent = ClassManager.getClassLoaderFromFiles(
+            new File[]{new File("../mock-env/plugins")}, 
+            Pattern.compile(".*\\.jar"), 
+            Thread.currentThread().getContextClassLoader()
+        );
+        List<Plugin> plugins = Clamshell.Runtime.loadServicePlugins(Plugin.class, parent);
+        List<Shell> shells = Clamshell.Runtime.filterPluginsByType(plugins, Shell.class);
+        List<InputController> ctrls = Clamshell.Runtime.filterPluginsByType(plugins, InputController.class);
+        Assert.assertEquals(1, shells.size());
+        Assert.assertEquals(1, ctrls.size());
+        
+        List<Command> cmds = Clamshell.Runtime.loadServicePlugins(Command.class, parent);
+        Assert.assertEquals(2, Clamshell.Runtime.filterPluginsByType(cmds, Command.class).size());
     }
 
 }

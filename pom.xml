@@ -104,8 +104,9 @@
         <module>clamshell-api</module>
         <module>clamshell-test</module>
         <module>clamshell-impl-core</module>
-        <module>clamshell-impl-default</module>
+        <module>clamshell-impl-plugins</module>
         <module>clamshell-impl-splashscreen</module>
+        <module>clamshell-impl-commands</module>
         <module>clamshell-time-command</module>
         <module>clamshell-launcher</module>
         <module>clamshell-echo-controller</module>

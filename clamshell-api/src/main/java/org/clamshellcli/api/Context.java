@@ -28,6 +28,11 @@ import java.util.Map;
  */
 public interface Context{
     /**
+     * Key to point to shared cli classloader
+     */
+    public static final String KEY_CLASS_LOADER = "key.classLoader";
+    
+    /**
      * Key to retrieve command-line input value from context store.
      */
     public static final String KEY_COMMAND_LINE_INPUT = "key.commandlineInput";
@@ -41,6 +46,11 @@ public interface Context{
      * Key for saving/retrieving the command map in the context.
      */
     public static final String KEY_COMMAND_MAP = "key.commandMap";
+    
+    /**
+     * Key to save/retrieve Plugin instances.
+     */
+    public static final String KEY_PLUGINS = "key.plugins";
     
     /**
      * Key to retrieve prompt value from the context store.
@@ -71,6 +81,11 @@ public interface Context{
      * Key to store loaded splash screen
      */
     public static final String KEY_SPLASH_SCREENS = "key.splashScreens";
+    
+    /**
+     * Key to store/load Command instances.
+     */
+    public static final String KEY_COMMANDS = "key.commands";
     
     /**
      * Key to retrieve instance of InputStream;
@@ -113,6 +128,12 @@ public interface Context{
      * @param key 
      */
     public void removeValue(String key);
+    
+    /**
+     * Returns the context classloader 
+     * @return 
+     */
+    public ClassLoader getClassLoader();
     
     /**
      * Returns an instance of the Configurator object.

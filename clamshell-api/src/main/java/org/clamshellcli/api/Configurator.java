@@ -20,6 +20,7 @@
 package org.clamshellcli.api;
 
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * This interface encapsulates the configuration of Clamshell-Cli.
@@ -36,6 +37,8 @@ public interface Configurator {
     public static final String VALUE_CONFIG_LIBDIR = "lib";
     public static final String VALUE_CONFIG_FILE = "cli.config";    
     public static final String VALUE_LINE_SEP = System.getProperty("line.separator");
+    
+    public static final Pattern JARFILE_PATTERN = Pattern.compile(".*\\.jar");
     
     /**
      * Returns the raw config map from cli.config. 

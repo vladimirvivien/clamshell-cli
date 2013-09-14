@@ -16,12 +16,13 @@
 package cli;
 
 import org.clamshellcli.api.Configurator;
-import org.clamshellcli.core.ShellContext;
 import org.clamshellcli.api.Context;
 import org.clamshellcli.api.Shell;
 import org.clamshellcli.core.Clamshell;
 import java.io.File;
-import java.util.Map;
+import java.util.List;
+import java.util.regex.Pattern;
+import org.clamshellcli.api.Plugin;
 
 /**
  * This is the entry point of the entire clamshell cli container (Main).
@@ -42,12 +43,11 @@ public class Run {
     public static void main(String[] args){        
         // create/confiugre the context
         Context context = null;
-        Configurator config = null;
         File libDir = Clamshell.Runtime.getLibDir();
+        File pluginsDir = Clamshell.Runtime.getPluginsDir();
         
         try{
             context = Clamshell.Runtime.getContext();
-            config = Clamshell.Runtime.getConfigurator();
         }catch(RuntimeException ex){
             System.out.printf("%nUnable to start Clamshell:%n%s.%n", ex.getMessage());
             System.exit(1);
@@ -60,43 +60,63 @@ public class Run {
             System.exit(1);
         }
         
-        // add libDir to classpath
+        // add libDir jars to classpath
+        ClassLoader libDirCl = null;
         try{
-            // modify the the thread's class loader
             ClassLoader parent = Thread.currentThread().getContextClassLoader();
-            ClassLoader cl = Clamshell.ClassManager.createClassLoaderFromFiles(
+            libDirCl = Clamshell.ClassManager.getClassLoaderFromFiles(
                 new File[]{libDir}, 
+                Configurator.JARFILE_PATTERN,
                 parent
             );
-            Thread.currentThread().setContextClassLoader(cl);
+            Thread.currentThread().setContextClassLoader(libDirCl);
         }catch(Exception ex){
-            System.out.printf("%nUnable to create classloader for path %s:%n%s.", libDir, ex.getMessage());
+            System.out.printf("%nUnable to load classes from lib directory %s:%n%s.", libDir, ex.getMessage());
+        }finally{
+            if (libDirCl == null){
+                System.out.printf("%nUnable to load classes from lib directory %s:%n.", libDir);
+            }
         }
         
-        context.putValue(Context.KEY_INPUT_STREAM, System.in);
-        context.putValue(Context.KEY_OUTPUT_STREAM, System.out);
+        // load Plugins classloader
+        ClassLoader pluginsCl = null;
+        try{
+            pluginsCl = Clamshell.ClassManager.getClassLoaderFromFiles(
+                new File[]{pluginsDir}, 
+                Configurator.JARFILE_PATTERN,
+                Thread.currentThread().getContextClassLoader()
+            );
+            context.putValue(Context.KEY_CLASS_LOADER, pluginsCl);
+        }catch(Exception ex){
+            System.out.printf("%nUnable to load Plugin classes %s:%n%s.", pluginsDir, ex.getMessage());
+        }finally{
+            if(pluginsCl == null){
+                System.out.printf("%nUnable to load Plugin classes in directory %s:%n.", libDir);
+            }
+        }
+        
+        // load plugins
+        List<Plugin> plugins =  Clamshell.Runtime.loadServicePlugins(Plugin.class, pluginsCl);
+        if(plugins.isEmpty()){
+            System.out.printf ("%nNo Plugin classes found in plugins directory, exiting...%n");
+            System.exit(1);
+        }
+        context.putValue(Context.KEY_PLUGINS, plugins);
+        List<Shell> shells = context.getPluginsByType(Shell.class);
         
         // validate plugins.  Look for default Shell.
-        if(context.getPlugins().size() > 0){
-            Shell shell = context.getShell();
-            if(context.getShell() != null){
-                try{
-                    shell.plug(context);
-                }catch(Exception ex){
-                    System.out.printf("%nSomething went wrong:%n%s%n", ex.getMessage());
-                }
-            }else{
-                System.out.printf (
-                    "%nNo Shell component found in plugins directory." +
-                    "%nA Shell instance must be on the classpath." +
-                    "%nExiting now."
-                );
-                System.exit(1);
+        if(shells.size() > 0){
+            Shell shell = shells.get(0);
+            try{
+                shell.plug(context);
+            }catch(Exception ex){
+                System.out.printf("%nSomething went wrong:%n%s%n", ex.getMessage());
             }
         }else{
             System.out.printf (
-                "%nNo plugins found in the plugins directory. " +
-                "%nClamShell-Cli will exit now."
+                "%nNo Shell component found in plugins directory." +
+                "%nA Shell is required to continue bootstrapping sequence." +
+                "%nExiting now."
             );
             System.exit(1);
         }

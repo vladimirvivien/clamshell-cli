@@ -19,12 +19,16 @@
  */
 package org.clamshellcli.commons.test;
 
+import java.io.File;
 import org.clamshellcli.api.Configurator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+import org.clamshellcli.api.Context;
 import org.clamshellcli.api.Plugin;
 import org.clamshellcli.api.Shell;
+import org.clamshellcli.core.Clamshell;
 import org.clamshellcli.core.ShellContext;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -44,6 +48,17 @@ public class ShellContextTest {
     
     public ShellContextTest() {
         context = ShellContext.createInstance();
+        try{
+        ClassLoader parent = Clamshell.ClassManager.getClassLoaderFromFiles(
+            new File[]{new File("../mock-env/plugins")}, 
+            Pattern.compile(".*\\.jar"), 
+            Thread.currentThread().getContextClassLoader()
+        );
+        List<Plugin> plugins = Clamshell.Runtime.loadServicePlugins(Plugin.class, parent);
+        context.putValue(Context.KEY_PLUGINS, plugins);
+        }catch(Exception ex){
+            throw new RuntimeException(ex);
+        }
     }
 
     @BeforeClass
@@ -112,7 +127,7 @@ public class ShellContextTest {
     }
     
     @Test
-    public void testGetPlugins(){
+    public void testGetPlugins() throws Exception{
         List<Plugin> plugins = context.getPlugins();
         assert plugins != null;
         assert plugins.size() == 5;
@@ -127,6 +142,9 @@ public class ShellContextTest {
     
     @Test
     public void testGetShell(){
+        List<Shell> shells = context.getPluginsByType(Shell.class);
+        assert !shells.isEmpty();
+        context.putValue(Context.KEY_SHELL_COMPONENT, shells.get(0));
         Shell shell = context.getShell();
         assert shell != null;
     }
