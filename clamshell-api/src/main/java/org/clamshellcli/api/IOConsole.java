@@ -47,10 +47,27 @@ public interface IOConsole extends Plugin{
      * @return  the value read from console's input
      */
     public String readInput(String prompt);
+    
+    /**
+     * Captures user input with masked characters (default blank).
+     * @param prompt
+     * @return 
+     */
+    public String readSecretInput(String prompt);
+    
+    /**
+     * Captures user input with specified masked character.
+     * @param prompt
+     * @param maskChar
+     * @return 
+     */
+    public String readSecretInput(String prompt, char maskChar);
+    
    
     /**
      * Writes a string value to the console's output stream.
      * @param value value to be written
      */
     public void writeOutput(String value);
+    
 }

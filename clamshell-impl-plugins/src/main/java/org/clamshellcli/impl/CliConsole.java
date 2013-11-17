@@ -28,11 +28,13 @@ import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import jline.ConsoleReader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import jline.console.ConsoleReader;
 
 /**
  * Default implementation of the IOConsole component.
- * It is respnosible for providing input/output interactivity.
+ * It is responsible for providing input/output interactivity.
  * @author vladimir.vivien
  */
 public class CliConsole implements IOConsole{
@@ -47,6 +49,7 @@ public class CliConsole implements IOConsole{
     private OutputStream output;
     private Thread consoleThread;
     private Map<String, String[]> inputHints;
+    private char defaultMask = '*';
 
     public InputStream getInputStream() {
         return input;
@@ -66,10 +69,10 @@ public class CliConsole implements IOConsole{
         inputHints = new HashMap<String, String[]>();
 
         try {
-            console = new ConsoleReader(input, new OutputStreamWriter(output));
+            console = new ConsoleReader(input, output);
         } catch (IOException ex) {
             throw new RuntimeException("Unable to initialize the console. "
-                    + " Program will stop now.", ex);
+                    + " Clamshell-Cli will stop now.", ex);
         }
     }
     
@@ -77,7 +80,7 @@ public class CliConsole implements IOConsole{
     @Override
     public void writeOutput(String val) {
         try {
-            console.printString(val);
+            console.print(val);
         } catch (IOException ex) {
             throw new RuntimeException("Unable to invoke print on console: " ,ex);
         }
@@ -93,5 +96,21 @@ public class CliConsole implements IOConsole{
         }
         return result;
     }    
+
+    @Override
+    public String readSecretInput(String prompt) {
+        return readSecretInput(prompt, defaultMask);
+    }
+
+    @Override
+    public String readSecretInput(String prompt, char maskChar) {
+        String result = null;
+        try {
+            result = console.readLine(prompt, maskChar);
+        } catch (IOException ex) {
+            throw new RuntimeException("Unable to read input: ", ex);
+        }
+        return result;
+    }
 
 }

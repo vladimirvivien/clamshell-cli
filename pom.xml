@@ -30,7 +30,7 @@
         <cli.version>0.5.0</cli.version>
         <junit.version>4.8.2</junit.version>
         <gson.version>2.0</gson.version>
-        <jline.version>1.0</jline.version>
+        <jline.version>2.11</jline.version>
         <jcommander.version>1.17</jcommander.version>
         <launcher.name>cli</launcher.name>
         <cli.url>http://code.google.com/p/clamshell-cli/</cli.url>

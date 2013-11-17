@@ -53,5 +53,15 @@ public class MockConsole implements IOConsole{
     public void plug(Context plug) {
         
     }
+
+    @Override
+    public String readSecretInput(String prompt) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String readSecretInput(String prompt, char maskChar) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
     
 }
