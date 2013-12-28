@@ -110,7 +110,9 @@ public class Run {
             try{
                 shell.plug(context);
             }catch(Exception ex){
-                System.out.printf("%nSomething went wrong:%n%s%n", ex.getMessage());
+                System.out.println("Something went wrong while bootstrapping the Shell:");
+                ex.printStackTrace(System.err);
+                System.exit(1);
             }
         }else{
             System.out.printf (

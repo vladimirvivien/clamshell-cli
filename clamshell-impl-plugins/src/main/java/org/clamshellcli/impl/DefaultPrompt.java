@@ -25,7 +25,7 @@ import org.clamshellcli.api.Prompt;
  */
 public class DefaultPrompt implements Prompt {
 
-    private final String PROMPT = System.getProperty("user.name") + "> ";
+    private final String PROMPT = "clamshell> ";
 
     @Override
     public String getValue(Context ctx) {

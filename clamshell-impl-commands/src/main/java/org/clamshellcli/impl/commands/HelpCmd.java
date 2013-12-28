@@ -105,14 +105,16 @@ public class HelpCmd implements Command{
             if(cmd != null){
                 printCommandHelp(ctx, cmd);
             }else{
-                ctx.getIoConsole().writeOutput(String.format("%nHelp for Command [%s] cannot not found.", cmdName));
+                ctx.getIoConsole().writeOutput(String.format("%nUnable to find command [%s].", cmdName));
             }
         }
     }
     
     private void printCommandHelp(Context ctx, Command cmd){
         if(cmd != null && cmd.getDescriptor() != null){
-            ctx.getIoConsole().writeOutput(String.format("%nCommand: %s - %s%n", cmd.getDescriptor().getName(), cmd.getDescriptor().getDescription()));
+            IOConsole io = ctx.getIoConsole();
+            io.writeOutputWithANSI("@|bold Command Help |@\n");
+            io.writeOutputWithANSI("%n@|red Command:|@ %s - %s%n", cmd.getDescriptor().getName(), cmd.getDescriptor().getDescription());
             ctx.getIoConsole().writeOutput(String.format("Usage: %s", cmd.getDescriptor().getUsage()));
             printCommandParamsDetail(ctx, cmd);
         }else{

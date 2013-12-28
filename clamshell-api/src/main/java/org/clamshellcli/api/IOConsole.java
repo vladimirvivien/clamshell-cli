@@ -70,4 +70,16 @@ public interface IOConsole extends Plugin{
      */
     public void writeOutput(String value);
     
+    /**
+     * Output ansi-encoded escape sequence using the jansi project.
+     * @param text a Java Formatted text template
+     * @param args values
+     */
+    public void writeOutputWithANSI(String text, Object...args);
+    
+    /**
+     * Output ansi-encoded escape sequence using jansi.
+     * @param text 
+     */
+    public void writeOutputWithANSI(String text);
 }

@@ -98,6 +98,11 @@ public interface Context{
     public static final String KEY_OUTPUT_STREAM = "key.OutputStream";
     
     /**
+     * Output error stream
+     */
+    public static final String KEY_ERROR_STREAM = "key.ErrorStream";
+    
+    /**
      * Returns the context's store copy of it's internal map.
      * @return Map<String, ? extends Object>
      */

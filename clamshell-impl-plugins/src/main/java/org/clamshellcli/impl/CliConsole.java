@@ -24,13 +24,18 @@ import org.clamshellcli.api.Shell;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.concurrent.Callable;
+import jline.Terminal;
+import jline.TerminalFactory;
 import jline.console.ConsoleReader;
+import org.fusesource.jansi.Ansi;
+import org.fusesource.jansi.AnsiConsole;
+import org.fusesource.jansi.AnsiRenderWriter;
+import org.fusesource.jansi.AnsiRenderer;
 
 /**
  * Default implementation of the IOConsole component.
@@ -45,37 +50,80 @@ public class CliConsole implements IOConsole{
     private ConsoleReader console;
     private List<InputController> controllers;
     private boolean controllersAreValid;
+    
     private InputStream input;
     private OutputStream output;
+    private PrintWriter out;
+    
     private Thread consoleThread;
     private Map<String, String[]> inputHints;
-    private char defaultMask = '*';
+    private final char defaultMask = '*';
+    
+    private final static Terminal TERM;
+    private final static Ansi ANSI;
+    
+    static {
+        TERM = TerminalFactory.create();
+        AnsiConsole.systemInstall();
+        Ansi.setEnabled(true);
+        Ansi.setDetector(new Callable(){
 
+            @Override
+            public Boolean call() throws Exception {
+                return TERM.isAnsiSupported();
+            }
+            
+        });
+        ANSI = Ansi.ansi();
+    }
+
+    @Override
     public InputStream getInputStream() {
         return input;
     }
 
+    @Override
     public OutputStream getOutputStream() {
         return output;
     }
 
+    @Override
     public void plug(Context plug) {
         context = plug;
         config = plug.getConfigurator();
         shell = plug.getShell();
         prompt = plug.getPrompt();
-        input = (input = (InputStream)context.getValue(Context.KEY_INPUT_STREAM)) != null ? input : System.in;
-        output = (output = (OutputStream)context.getValue(Context.KEY_OUTPUT_STREAM)) != null ? output : System.out;
+        
+        input = System.in;
+        output = System.out;
+        
         inputHints = new HashMap<String, String[]>();
-
         try {
             console = new ConsoleReader(input, output);
+            out = new AnsiRenderWriter(console.getOutput(), true);
         } catch (IOException ex) {
             throw new RuntimeException("Unable to initialize the console. "
                     + " Clamshell-Cli will stop now.", ex);
         }
     }
     
+    //TODO - promote to Interface
+    public void writeNewLine() {
+        try {
+            console.println();
+        } catch (IOException ex) {
+            throw new RuntimeException("Unable to invoke print on console: " ,ex);
+        }        
+    }
+    
+    //TODO - promote to Interface
+    public void writeOutput(String text, Object...args){
+        try {
+            console.print(String.format(text, args));
+        } catch (IOException ex) {
+            throw new RuntimeException("Unable to invoke print on console: " ,ex);
+        }        
+    }
     
     @Override
     public void writeOutput(String val) {
@@ -85,6 +133,17 @@ public class CliConsole implements IOConsole{
             throw new RuntimeException("Unable to invoke print on console: " ,ex);
         }
     }
+    
+    @Override
+    public void writeOutputWithANSI(String text, Object...args){
+        out.printf(text, args);
+    }
+    
+    @Override
+    public void writeOutputWithANSI(String text){
+        out.print(text);
+    }
+    
     
     @Override
     public String readInput(String prompt) {
@@ -112,5 +171,4 @@ public class CliConsole implements IOConsole{
         }
         return result;
     }
-
 }
