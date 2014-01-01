@@ -15,6 +15,7 @@
  */
 package org.clamshellcli.impl;
 
+import java.io.File;
 import org.clamshellcli.api.Configurator;
 import org.clamshellcli.api.Context;
 import org.clamshellcli.api.IOConsole;
@@ -32,10 +33,10 @@ import java.util.concurrent.Callable;
 import jline.Terminal;
 import jline.TerminalFactory;
 import jline.console.ConsoleReader;
+import jline.console.history.FileHistory;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.AnsiConsole;
 import org.fusesource.jansi.AnsiRenderWriter;
-import org.fusesource.jansi.AnsiRenderer;
 
 /**
  * Default implementation of the IOConsole component.
@@ -51,8 +52,6 @@ public class CliConsole implements IOConsole{
     private List<InputController> controllers;
     private boolean controllersAreValid;
     
-    private InputStream input;
-    private OutputStream output;
     private PrintWriter out;
     
     private Thread consoleThread;
@@ -61,30 +60,22 @@ public class CliConsole implements IOConsole{
     
     private final static Terminal TERM;
     private final static Ansi ANSI;
+    private final static File CLI_USERDIR = new File(Configurator.VALUE_USERHOME,".clamshell");
+    private File histFile = new File (CLI_USERDIR, "cli.hist");
     
     static {
         TERM = TerminalFactory.create();
         AnsiConsole.systemInstall();
         Ansi.setEnabled(true);
+        
         Ansi.setDetector(new Callable(){
-
             @Override
             public Boolean call() throws Exception {
                 return TERM.isAnsiSupported();
             }
-            
         });
-        ANSI = Ansi.ansi();
-    }
-
-    @Override
-    public InputStream getInputStream() {
-        return input;
-    }
-
-    @Override
-    public OutputStream getOutputStream() {
-        return output;
+        
+        ANSI = Ansi.ansi();        
     }
 
     @Override
@@ -94,81 +85,116 @@ public class CliConsole implements IOConsole{
         shell = plug.getShell();
         prompt = plug.getPrompt();
         
-        input = System.in;
-        output = System.out;
-        
         inputHints = new HashMap<String, String[]>();
+        
         try {
-            console = new ConsoleReader(input, output);
+            console = new ConsoleReader(System.in, System.out);
             out = new AnsiRenderWriter(console.getOutput(), true);
+            
+            // ensure clamshell user dir exists
+            if(!CLI_USERDIR.exists()){
+                CLI_USERDIR.mkdirs();
+            }
+            // setup history
+            console.setHistoryEnabled(true);
+            console.setHistory(new FileHistory(histFile));
         } catch (IOException ex) {
             throw new RuntimeException("Unable to initialize the console. "
                     + " Clamshell-Cli will stop now.", ex);
         }
     }
     
-    //TODO - promote to Interface
-    public void writeNewLine() {
-        try {
-            console.println();
-        } catch (IOException ex) {
-            throw new RuntimeException("Unable to invoke print on console: " ,ex);
-        }        
-    }
-    
-    //TODO - promote to Interface
-    public void writeOutput(String text, Object...args){
-        try {
-            console.print(String.format(text, args));
-        } catch (IOException ex) {
-            throw new RuntimeException("Unable to invoke print on console: " ,ex);
-        }        
-    }
-    
     @Override
-    public void writeOutput(String val) {
-        try {
-            console.print(val);
-        } catch (IOException ex) {
-            throw new RuntimeException("Unable to invoke print on console: " ,ex);
-        }
+    public boolean isHistoryEnabled() {
+        return (console != null) ? console.isHistoryEnabled() : false;
     }
-    
-    @Override
-    public void writeOutputWithANSI(String text, Object...args){
-        out.printf(text, args);
-    }
-    
-    @Override
-    public void writeOutputWithANSI(String text){
-        out.print(text);
-    }
-    
-    
-    @Override
-    public String readInput(String prompt) {
-        String result = null;
-        try {
-            result = console.readLine(prompt);
-        } catch (IOException ex) {
-            throw new RuntimeException("Unable to read input: ", ex);
-        }
-        return result;
-    }    
-
-    @Override
-    public String readSecretInput(String prompt) {
-        return readSecretInput(prompt, defaultMask);
+    public void setHistoryEnabled(boolean hist){
+        console.setHistoryEnabled(hist);
     }
 
     @Override
-    public String readSecretInput(String prompt, char maskChar) {
-        String result = null;
+    public File getHistoryFile() {
+        return histFile;
+    }
+    
+    public void setHistoryFile(File f){
+        histFile = f;
+    }
+
+    @Override
+    public PrintWriter getWriter() {
+        return out;
+    }
+
+    @Override
+    public String readLine() {
         try {
-            result = console.readLine(prompt, maskChar);
+            return console.readLine();
         } catch (IOException ex) {
             throw new RuntimeException("Unable to read input: ", ex);
         }
-        return result;
+    }
+
+    @Override
+    public String readLine(String prompt) {
+        try {
+            return console.readLine(prompt);
+        } catch (IOException ex) {
+            throw new RuntimeException("Unable to read input: ", ex);
+        }        
+    }
+
+    @Override
+    public String readLine(char maskChar) {
+        try {
+            return console.readLine(maskChar);
+        } catch (IOException ex) {
+            throw new RuntimeException("Unable to read input: ", ex);
+        }
+    }
+
+    @Override
+    public String readLine(String prompt, char maskChar) {
+        try {
+            return console.readLine(prompt, maskChar);
+        } catch (IOException ex) {
+            throw new RuntimeException("Unable to read input: ", ex);
+        }
+    }
+
+    @Override
+    public void print(String s) {
+        out.print(s);
+    }
+
+    @Override
+    public void printf(String format, Object... args) {
+        out.printf(format, args);
+    }
+
+    @Override
+    public void println() {
+        out.println();
+    }
+
+    @Override
+    public void println(String s) {
+        out.println(s);
+    }
+
+    @Override
+    public void clearScreen() {
+        try{
+            if(!console.clearScreen()){
+                out.println ("Clearscreen command is not supported on terminal.");
+            }
+        }catch(IOException ex){
+            throw new RuntimeException("Unable to clear screen: ", ex);
+        }
+    }
+
+    @Override
+    public void close() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

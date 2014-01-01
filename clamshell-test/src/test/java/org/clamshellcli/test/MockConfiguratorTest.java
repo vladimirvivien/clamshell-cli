@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package cli.clamshell.test;
+package org.clamshellcli.test;
 
 import org.clamshellcli.test.MockConfigurator;
 import org.clamshellcli.api.Configurator;

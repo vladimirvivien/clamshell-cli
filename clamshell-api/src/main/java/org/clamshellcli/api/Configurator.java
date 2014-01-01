@@ -37,6 +37,7 @@ public interface Configurator {
     public static final String VALUE_CONFIG_LIBDIR = "lib";
     public static final String VALUE_CONFIG_FILE = "cli.config";    
     public static final String VALUE_LINE_SEP = System.getProperty("line.separator");
+    public static final String VALUE_USERHOME = System.getProperty("user.home");
     
     public static final Pattern JARFILE_PATTERN = Pattern.compile(".*\\.jar");
     

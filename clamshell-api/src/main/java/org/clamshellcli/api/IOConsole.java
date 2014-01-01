@@ -19,67 +19,91 @@
  */
 package org.clamshellcli.api;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.File;
+import java.io.PrintWriter;
 
 /**
  * This component represents a console object used for input/output interactivity.
  * @author vladimir.vivien
  */
 public interface IOConsole extends Plugin{
-    /**
-     * Getter for the console's internal InputStream instance.  Most implementation
-     * will return System.in.
-     * @return InputStream
-     */
-    public InputStream getInputStream();
     
     /**
-     * Getter for the console's internal OutputStream instance.  Most implementation
-     * will return System.out.
+     * Getter for direct access to Console's Writer object.
      * @return OutputStream
      */
-    public OutputStream getOutputStream();
-    
+    public PrintWriter getWriter();
+
     /**
-     * Prompts user to provide an input from the console.
-     * @param prompt the prompt value displayed 
-     * @return  the value read from console's input
+     * Reads an line of character from input.
+     * @return 
      */
-    public String readInput(String prompt);
+    public String readLine();
     
     /**
-     * Captures user input with masked characters (default blank).
+     * Reads line of characters after prompt.
      * @param prompt
      * @return 
      */
-    public String readSecretInput(String prompt);
+    public String readLine(String prompt);
     
     /**
-     * Captures user input with specified masked character.
+     * Read line input with masked chars
+     * @param maskChar
+     * @return 
+     */
+    public String readLine(char maskChar);
+    
+    /**
+     * Reads input after prompt using specified masked character.
      * @param prompt
      * @param maskChar
      * @return 
      */
-    public String readSecretInput(String prompt, char maskChar);
-    
-   
-    /**
-     * Writes a string value to the console's output stream.
-     * @param value value to be written
-     */
-    public void writeOutput(String value);
+    public String readLine(String prompt, char maskChar);
     
     /**
-     * Output ansi-encoded escape sequence using the jansi project.
-     * @param text a Java Formatted text template
-     * @param args values
+     * Shortcut to PrintWriter.print()
+     * @param s 
      */
-    public void writeOutputWithANSI(String text, Object...args);
+    public void print(String s);
     
     /**
-     * Output ansi-encoded escape sequence using jansi.
-     * @param text 
+     * Shortcut to PrintWriter.printf()
+     * @param format
+     * @param args 
      */
-    public void writeOutputWithANSI(String text);
+    public void printf(String format, Object...args);
+    
+   /**
+    * Shortcut to PrintWriter.println()
+    */
+    public void println();
+
+    /**
+     * Shortcut to PrintWriter.println().
+     * @param s 
+     */
+    public void println(String s);
+    
+    /**
+     * Returns history flag value
+     * @return 
+     */
+    public boolean isHistoryEnabled();
+    
+    /**
+     * Gets the history file/location to use
+     */
+    public File getHistoryFile();
+    
+    /**
+     * Clears the screen content.
+     */
+    public void clearScreen();
+    
+    /**
+     * Closes console upon shutdown.
+     */
+    public void close();
 }

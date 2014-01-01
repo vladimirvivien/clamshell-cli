@@ -15,62 +15,83 @@
  */
 package org.clamshellcli.test;
 
+import java.io.File;
 import org.clamshellcli.api.Context;
 import org.clamshellcli.api.IOConsole;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.PrintWriter;
 
 /**
  * This mock implementation of the IOConsole is provided for testing.
  * @author vladimir
  */
 public class MockConsole implements IOConsole{
-    private InputStream in;
-    private PrintStream out;
-    
-    public MockConsole(){
-        in = System.in;
-        out = System.out;
-    }
-    
-    public InputStream getInputStream() {
-        return in;
-    }
-
-    public OutputStream getOutputStream() {
-        return out;
-    }
-
-    public String readInput(String prompt) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    public void writeOutput(String value) {
-        out.print(value);
-    }
-
+    @Override
     public void plug(Context plug) {
         
     }
 
     @Override
-    public String readSecretInput(String prompt) {
+    public boolean isHistoryEnabled() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public String readSecretInput(String prompt, char maskChar) {
+    public File getHistoryFile() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void writeOutputWithANSI(String text, Object... args) {
+    public PrintWriter getWriter() {
+        return new PrintWriter(System.out);
+    }
+
+    @Override
+    public String readLine() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void writeOutputWithANSI(String text) {
+    public String readLine(String prompt) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String readLine(char maskChar) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String readLine(String prompt, char maskChar) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void print(String s) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void printf(String format, Object... args) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void println() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void println(String s) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void clearScreen() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void close() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     

@@ -26,7 +26,6 @@ import static org.clamshellcli.api.Context.*;
 import org.clamshellcli.api.InputController;
 import org.clamshellcli.api.Prompt;
 import org.clamshellcli.api.SplashScreen;
-import org.clamshellcli.core.Clamshell;
 
 /**
  * This implementation of the Shell component loads all other components in the system.
@@ -117,7 +116,7 @@ public class CliShell implements Shell{
                 ctrl.plug(plug);
             }
         }else{
-            console.writeOutput("%nWARNING: No InputControllers found on classpath.");            
+            console.println("WARNING: No InputControllers found on classpath.");            
         }
     }
     
@@ -130,7 +129,7 @@ public class CliShell implements Shell{
                     context.putValue(Context.KEY_COMMAND_LINE_ARGS, null);
 
                     boolean handled = false;
-                    String line = console.readInput(prompt.getValue(context));
+                    String line = console.readLine(prompt.getValue(context));
 
                     if (line == null || line.trim().isEmpty()) {
                         continue;
@@ -148,12 +147,13 @@ public class CliShell implements Shell{
                         }
                         // was command line handled.
                         if (!handled) {
-                            console.writeOutput(String.format(
+                            console.printf(
                                 "%nCommand unhandled." +
-                                "%nNo controllers found to handle [%s].%n", line));
+                                "%nNo controllers found to handle [%s].%n", line
+                            );
                         }
                     } else {
-                        console.writeOutput(String.format("%nWarning: no controllers(s) found.%n"));
+                        console.printf("%nWarning: no controllers(s) found.%n");
                     }
                 }
             }

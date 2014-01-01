@@ -22,7 +22,6 @@ package org.clamshellcli.impl.commands;
 import org.clamshellcli.api.Command;
 import org.clamshellcli.api.Context;
 import org.clamshellcli.api.IOConsole;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -89,7 +88,7 @@ public class HelpCmd implements Command{
         }else{
             printAllHelp(ctx);
         }
-        ctx.getIoConsole().writeOutput(String.format("%n%n"));
+        ctx.getIoConsole().printf("%n%n");
         return null;
     }
 
@@ -105,7 +104,9 @@ public class HelpCmd implements Command{
             if(cmd != null){
                 printCommandHelp(ctx, cmd);
             }else{
-                ctx.getIoConsole().writeOutput(String.format("%nUnable to find command [%s].", cmdName));
+                ctx.getIoConsole().printf(
+                        "%nUnable to find command [%s].", cmdName
+                );
             }
         }
     }
@@ -113,12 +114,14 @@ public class HelpCmd implements Command{
     private void printCommandHelp(Context ctx, Command cmd){
         if(cmd != null && cmd.getDescriptor() != null){
             IOConsole io = ctx.getIoConsole();
-            io.writeOutputWithANSI("@|bold Command Help |@\n");
-            io.writeOutputWithANSI("%n@|red Command:|@ %s - %s%n", cmd.getDescriptor().getName(), cmd.getDescriptor().getDescription());
-            ctx.getIoConsole().writeOutput(String.format("Usage: %s", cmd.getDescriptor().getUsage()));
+            io.printf("%n@|bold,red Command:|@ %s - %s%n", 
+                cmd.getDescriptor().getName(), 
+                cmd.getDescriptor().getDescription()
+            );
+            io.printf("Usage: %s", cmd.getDescriptor().getUsage());
             printCommandParamsDetail(ctx, cmd);
         }else{
-            ctx.getIoConsole().writeOutput(String.format("%nUnable to display help for command."));
+            ctx.getIoConsole().println("Unable to display help for command.");
         }
     }
     
@@ -126,29 +129,29 @@ public class HelpCmd implements Command{
         Command.Descriptor desc = cmd.getDescriptor();
         if(desc == null || desc.getArguments() == null) return;
         IOConsole c = ctx.getIoConsole();
-        c.writeOutput(String.format("%nOptions:"));
-        c.writeOutput(String.format("%n--------"));
+        c.printf("%nOptions:");
+        c.printf("%n--------");
         for(Map.Entry<String,String> entry : desc.getArguments().entrySet()){
-            c.writeOutput(String.format(
+            c.printf(
                 "%n%1$25s\t%2$s", 
                 entry.getKey(), 
                 entry.getValue()
-            ));            
+            );            
         }
     }
     
     private void printAllHelp(Context ctx){
         IOConsole c = ctx.getIoConsole();
-        c.writeOutput(String.format("%nAvailable Commands"));
-        c.writeOutput(String.format("%n------------------"));
+        c.printf("%nAvailable Commands");
+        c.printf("%n------------------");
         List<Command> commands = ctx.getCommands();
         for(Command cmd : commands){
-            c.writeOutput(String.format(
+            c.printf(
                 "%n%1$10s %2$5s %3$s", 
                 cmd.getDescriptor().getName(), 
                 " ", 
                 cmd.getDescriptor().getDescription()
-            ));
+            );
         }
     }
     

@@ -30,7 +30,6 @@ import com.beust.jcommander.internal.Lists;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.RuntimeMXBean;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -131,7 +130,7 @@ public class SysInfoCmd implements Command{
             try{
                 descriptor.setCommandArgs(args);
             }catch(RuntimeException ex){
-                c.writeOutput(String.format("%nUnable execute command: %s%n%n", ex.getMessage()));
+                c.printf("%nUnable execute command: %s%n%n", ex.getMessage());
                 return null;
             }
             
@@ -139,29 +138,29 @@ public class SysInfoCmd implements Command{
             
             // >sysinfo -props
             if(descriptor!=null && descriptor.parameters.props){
-                c.writeOutput(String.format("%nSystem Properties"));
-                c.writeOutput(String.format("%n-----------------"));
+                c.printf("%nSystem Properties");
+                c.printf("%n-----------------");
                 displayAllSysProperties(ctx);
-                c.writeOutput(String.format("%n%n"));
+                c.printf("%n%n");
             }
             
             // >sysinfo -cp [or -classpath]
             if(descriptor != null && descriptor.parameters.cp){
                 RuntimeMXBean bean = ManagementFactory.getRuntimeMXBean();
-                c.writeOutput(String.format("%nClasspath: %s", bean.getClassPath()));
-                c.writeOutput(String.format("%nBoot Classpath: %s%n%n", bean.getBootClassPath()));
+                c.printf("%nClasspath: %s", bean.getClassPath());
+                c.printf("%nBoot Classpath: %s%n%n", bean.getBootClassPath());
             }
             
             
             // >sysinfo -mem
             if(descriptor != null && descriptor.parameters.mem){
                 MemoryMXBean bean = ManagementFactory.getMemoryMXBean();
-                c.writeOutput(String.format("%nHeap Memory Usage:%n"));
-                c.writeOutput(String.format("\t-Initial: %d%n", bean.getHeapMemoryUsage().getInit()));
-                c.writeOutput(String.format("\t-Max: %d%n", bean.getHeapMemoryUsage().getMax()));
-                c.writeOutput(String.format("\t-Committed: %d%n", bean.getHeapMemoryUsage().getCommitted()));
-                c.writeOutput(String.format("\t-Used: %d", bean.getHeapMemoryUsage().getUsed()));
-                c.writeOutput(String.format("%n%n"));
+                c.printf("%nHeap Memory Usage:%n");
+                c.printf("\t-Initial: %d%n", bean.getHeapMemoryUsage().getInit());
+                c.printf("\t-Max: %d%n", bean.getHeapMemoryUsage().getMax());
+                c.printf("\t-Committed: %d%n", bean.getHeapMemoryUsage().getCommitted());
+                c.printf("\t-Used: %d", bean.getHeapMemoryUsage().getUsed());
+                c.printf("%n%n");
             }
 
         }
@@ -177,17 +176,17 @@ public class SysInfoCmd implements Command{
     private void displaySystemProperty(Context ctx, String propName){
         IOConsole c = ctx.getIoConsole();
         if(propName == null || propName.isEmpty()){
-            c.writeOutput(String.format("%n Property name is missing. Provide a property name.%n%n"));
+            c.printf("%n Property name is missing. Provide a property name.%n%n");
             return;
         }
         String propVal = System.getProperty(propName);
         if(propVal != null){
-            c.writeOutput(String.format(
+            c.printf(
                 "%n%1$30s %2$5s %3$s", 
                 propName, 
                 " ", 
                 propVal
-            ));             
+            );             
         }
     }
     

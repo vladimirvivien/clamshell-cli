@@ -37,7 +37,7 @@ public class TimeCmd implements Command {
     @Override
     public Object execute(Context ctx) {
         IOConsole console = ctx.getIoConsole();
-        console.writeOutput(String.format("%n%s%n%n",new Date().toString()));
+        console.printf("%n%s%n%n",new Date().toString());
         return null;
     }
 

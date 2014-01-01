@@ -15,25 +15,60 @@
  */
 package org.clamshellcli.impl.test;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import java.io.File;
+import junit.framework.Assert;
+import org.clamshellcli.api.Configurator;
+import org.clamshellcli.api.Context;
+import org.clamshellcli.impl.CliConsole;
+import org.clamshellcli.test.MockContext;
+import org.junit.After;
+import org.junit.Before; 
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *
  * @author vvivien
  */
 public class CliConsoleTest {
+    private static final File CLI_USERDIR = new File(Configurator.VALUE_USERHOME,".clamshell");
+    private Context ctx;
+    private CliConsole c;
     
-    public CliConsoleTest() {
+    @Before
+    public void setup() {
+        ctx = MockContext.createInstance();
+        c = new CliConsole();
     }
-
-    @BeforeClass
-    public static void setUpClass() throws Exception {
+    
+    @After
+    public void teardown() {
+        ctx = null;
     }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
+    
+    @Test
+    public void testConsolePlugIn() {
+        
+        Assert.assertNotNull(c.getWriter());
+        Assert.assertNotNull(c.getHistoryFile());
+        
+        // ensure default CLI dir
+        Assert.assertTrue("CLI User directory not created", CLI_USERDIR.exists());
+        Assert.assertNotNull(c.getHistoryFile());
+        Assert.assertEquals (c.getHistoryFile(), new File(CLI_USERDIR,"cli.hist"));
     }
+    
+    @Test 
+    public void testSetHistoryEnabled() {
+        c.setHistoryEnabled(true);
+        Assert.assertTrue(c.isHistoryEnabled());
+        c.setHistoryEnabled(false);
+        Assert.assertFalse (c.isHistoryEnabled());
+    }
+    
+    @Test
+    public void testSetHistoryFile() {
+        c.setHistoryFile(new File (CLI_USERDIR, "test.hist"));
+        Assert.assertEquals(c.getHistoryFile(), new File (CLI_USERDIR, "test.hist"));
+    }
+    
 }

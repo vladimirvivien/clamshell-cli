@@ -38,7 +38,7 @@ public class EchoController extends AnInputController{
         IOConsole console = ctx.getIoConsole();
         String inputLine = (String) ctx.getValue(Context.KEY_COMMAND_LINE_INPUT);
         if(inputLine != null && !inputLine.isEmpty()){
-            console.writeOutput(inputLine + Configurator.VALUE_LINE_SEP);
+            console.print(inputLine + Configurator.VALUE_LINE_SEP);
             handled = true;
         }
         return handled;

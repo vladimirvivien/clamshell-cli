@@ -95,8 +95,11 @@ public class CmdController extends AnInputController{
                     }
                     cmd.execute(ctx);
                 }else{
-                    ctx.getIoConsole().writeOutput(String.format("%nCommand [%s] is unknown. "
-                            + "Type help for a list of installed commands.", tokens[0]));
+                    ctx.getIoConsole().printf(
+                            "%nCommand [%s] is unknown. "
+                            + "Type help for a list of installed commands.", 
+                            tokens[0]
+                    );
                 }
                 handled = true;
             }
@@ -125,9 +128,10 @@ public class CmdController extends AnInputController{
             }
             
         }else{
-            plug.getIoConsole().writeOutput(
-                String.format("%nNo commands were found for input controller"
-                    + " [%s].%n", this.getClass().getName()));
+            plug.getIoConsole().printf(
+                "%nNo commands were found for input controller [%s].%n", 
+                    this.getClass().getName()
+            );
         }
     }
     

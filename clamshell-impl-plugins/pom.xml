@@ -12,8 +12,18 @@
     <version>0.5.2</version>
     <name>clamshell-impl-plugins</name>
 
-    <build>
+    <build>        
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>${compile.source}</source>
+                    <target>${compile.target}</target>
+                </configuration>                
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -77,6 +87,12 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>clamshell-impl-core</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>clamshell-test</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
         
         <dependency>
