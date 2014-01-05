@@ -90,12 +90,28 @@ public interface IOConsole extends Plugin{
      * Returns history flag value
      * @return 
      */
-    public boolean isHistoryEnabled();
+    public boolean isHistoryEnabled();   
+    
+    /**
+     * Flushes the history content to storage.
+     */
+    public void saveHistory();
+    
+    /**
+     * Adds the string to history.
+     * @param s 
+     */
+    public void addToHistory(String s);
     
     /**
      * Gets the history file/location to use
      */
     public File getHistoryFile();
+    
+    /**
+     * Clears the history.
+     */
+    public void clearHistory();
     
     /**
      * Clears the screen content.

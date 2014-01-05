@@ -23,13 +23,13 @@ import org.clamshellcli.api.InputController;
 import org.clamshellcli.api.Prompt;
 import org.clamshellcli.api.Shell;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jline.Terminal;
 import jline.TerminalFactory;
 import jline.console.ConsoleReader;
@@ -44,6 +44,7 @@ import org.fusesource.jansi.AnsiRenderWriter;
  * @author vladimir.vivien
  */
 public class CliConsole implements IOConsole{
+    private boolean plugged;
     private Context context;
     private Configurator config;
     private Shell shell;
@@ -60,8 +61,9 @@ public class CliConsole implements IOConsole{
     
     private final static Terminal TERM;
     private final static Ansi ANSI;
-    private final static File CLI_USERDIR = new File(Configurator.VALUE_USERHOME,".clamshell");
-    private File histFile = new File (CLI_USERDIR, "cli.hist");
+    private final static File CLI_USERDIR = new File(Configurator.VALUE_USERHOME,".cli");
+    private File histFile = new File (CLI_USERDIR, "history.log");
+    private FileHistory history;
     
     static {
         TERM = TerminalFactory.create();
@@ -88,6 +90,7 @@ public class CliConsole implements IOConsole{
         inputHints = new HashMap<String, String[]>();
         
         try {
+            // setup ANSI writer
             console = new ConsoleReader(System.in, System.out);
             out = new AnsiRenderWriter(console.getOutput(), true);
             
@@ -96,8 +99,14 @@ public class CliConsole implements IOConsole{
                 CLI_USERDIR.mkdirs();
             }
             // setup history
+            history = new FileHistory(histFile);
+            history.moveToEnd();
             console.setHistoryEnabled(true);
-            console.setHistory(new FileHistory(histFile));
+            console.setHistory(history);
+            
+            
+            // console plugged
+            plugged = true;
         } catch (IOException ex) {
             throw new RuntimeException("Unable to initialize the console. "
                     + " Clamshell-Cli will stop now.", ex);
@@ -119,11 +128,44 @@ public class CliConsole implements IOConsole{
     
     public void setHistoryFile(File f){
         histFile = f;
+        try{
+            history  = new FileHistory(histFile);
+            console.setHistory(history);
+        }catch(IOException ex){
+            throw new RuntimeException ("Unable to set history file.", ex);
+        }
     }
-
+    
+    @Override
+    public void saveHistory() {
+        try {
+            history.flush();
+        } catch (IOException ex) {
+            throw new RuntimeException ("Unable to save history.", ex);
+        }
+    }
+    
+    @Override
+    public void addToHistory(String s) {
+        history.add(s);
+    }
+    
+    @Override
+    public void clearHistory() {
+        try {
+            history.purge();
+        } catch (IOException ex) {
+            throw new RuntimeException("Unable to delete history file.", ex);
+        }
+    }
+    
     @Override
     public PrintWriter getWriter() {
         return out;
+    }
+
+    public ConsoleReader getReader() {
+        return console;
     }
 
     @Override
@@ -196,5 +238,12 @@ public class CliConsole implements IOConsole{
     @Override
     public void close() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    
+    private void assertComponentPlugged() {
+        if (!plugged){
+            throw new IllegalStateException("Component is unplugged.");
+        }
     }
 }
