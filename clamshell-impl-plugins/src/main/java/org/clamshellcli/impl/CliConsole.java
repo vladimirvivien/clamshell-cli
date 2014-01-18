@@ -114,6 +114,17 @@ public class CliConsole implements IOConsole{
     }
     
     @Override
+    public void unplug(Context plug){
+        try {
+            plugged = false;
+            history.flush();
+            console.shutdown();
+        } catch (Exception ex) {
+            throw new RuntimeException ("Unable to unplug CliConsole.", ex);
+        }
+    }
+    
+    @Override
     public boolean isHistoryEnabled() {
         return (console != null) ? console.isHistoryEnabled() : false;
     }

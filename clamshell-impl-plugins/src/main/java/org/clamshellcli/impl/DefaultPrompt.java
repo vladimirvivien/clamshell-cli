@@ -25,13 +25,18 @@ import org.clamshellcli.api.Prompt;
  */
 public class DefaultPrompt implements Prompt {
 
-    private final String PROMPT = "clamshell> ";
+    private final String PROMPT = "cli> ";
 
     @Override
     public String getValue(Context ctx) {
         return PROMPT;
     }
 
+    @Override
     public void plug(Context plug) {
+    }
+
+    @Override
+    public void unplug(Context plug) {
     }
 }

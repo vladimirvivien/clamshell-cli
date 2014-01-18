@@ -72,5 +72,9 @@ public class TimeCmd implements Command {
             }
         };
     }
+
+    @Override
+    public void unplug(Context plug) {
+    }
     
 }

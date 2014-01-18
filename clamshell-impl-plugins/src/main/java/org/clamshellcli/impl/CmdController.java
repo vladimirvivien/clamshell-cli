@@ -93,7 +93,12 @@ public class CmdController extends AnInputController{
                         String[] args = Arrays.copyOfRange(tokens, 1, tokens.length);
                         ctx.putValue(Context.KEY_COMMAND_LINE_ARGS, args);
                     }
-                    cmd.execute(ctx);
+                    
+                    try{
+                        cmd.execute(ctx);
+                    }catch(Exception ex){
+                        ctx.getIoConsole().printf("WARNING: unable to execute command: [%s]%n%s%n", cmdLine, ex.getMessage());
+                    }
                 }else{
                     ctx.getIoConsole().printf(
                             "%nCommand [%s] is unknown. "
@@ -117,12 +122,12 @@ public class CmdController extends AnInputController{
     public void plug(Context plug) {
         List<Command> allCmds = loadCommands(plug);
         plug.putValue(Context.KEY_COMMANDS, allCmds);
-        List<Command> sysCommands = plug.getCommandsByNamespace(DEFAULT_NAMESPACE);
-        if(sysCommands.size() > 0){
-            commands = plug.mapCommands(sysCommands);
+
+        if(allCmds.size() > 0){
+            commands = plug.mapCommands(allCmds);
             Set<String> cmdHints = new TreeSet<String>();
             // plug each Command instance and collect input hints
-            for(Command cmd : sysCommands){
+            for(Command cmd : allCmds){
                 cmd.plug(plug);
                 cmdHints.addAll(collectInputHints(cmd));
             }
@@ -133,6 +138,19 @@ public class CmdController extends AnInputController{
                     this.getClass().getName()
             );
         }
+    }
+    
+    @Override
+    public void unplug(Context plug){
+        List<Command> cmds = plug.getCommands();
+        for (Command cmd : cmds){
+            try{
+                cmd.unplug(plug);
+            }catch(Exception ex){
+                plug.getIoConsole().printf("WARNING: unable to unplug commnad %s: %s", cmd.getClass(), ex.getMessage());
+            }
+        }
+        
     }
     
     private List<Command> loadCommands(Context plug) {

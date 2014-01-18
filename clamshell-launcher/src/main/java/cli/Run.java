@@ -42,10 +42,14 @@ import org.clamshellcli.api.Plugin;
 public class Run {
     public static void main(String[] args){        
         // create/confiugre the context
-        Context context = null;
+        Context context  = null;
         File libDir = Clamshell.Runtime.getLibDir();
         File pluginsDir = Clamshell.Runtime.getPluginsDir();
         
+        // register shutdown hook
+        
+        
+        // Create/get Context, if something goes wrong, exit.
         try{
             context = Clamshell.Runtime.getContext();
         }catch(RuntimeException ex){
@@ -60,7 +64,7 @@ public class Run {
             System.exit(1);
         }
         
-        // add libDir jars to classpath
+        // load classes from lib directory
         ClassLoader libDirCl = null;
         try{
             ClassLoader parent = Thread.currentThread().getContextClassLoader();
@@ -103,17 +107,23 @@ public class Run {
         }
         context.putValue(Context.KEY_PLUGINS, plugins);
         List<Shell> shells = context.getPluginsByType(Shell.class);
-        
-        // validate plugins.  Look for default Shell.
+                
+        // Look for default Shell to launch.
         if(shells.size() > 0){
             Shell shell = shells.get(0);
             try{
+                context.putValue(Context.KEY_SHELL_COMPONENT, shell);
                 shell.plug(context);
             }catch(Exception ex){
                 System.out.println("Something went wrong while bootstrapping the Shell:");
                 ex.printStackTrace(System.err);
                 System.exit(1);
             }
+            
+            // before launch, register shutdown handler
+            Runtime.getRuntime().addShutdownHook(new ShutdownHook(context));
+
+            
         }else{
             System.out.printf (
                 "%nNo Shell component found in plugins directory." +
@@ -121,6 +131,23 @@ public class Run {
                 "%nExiting now."
             );
             System.exit(1);
+        }
+    }
+    
+    //TODO careful, Cotext is not thread-safe.
+    private static class ShutdownHook  extends Thread {
+        private final Context context;
+        public ShutdownHook(final Context ctx){
+            context = ctx;
+        }
+        
+        @Override
+        public void run() {
+            System.out.println ("Shutting down...");
+            Shell s = context.getShell();
+            if(s != null){
+                s.unplug(context);
+            }
         }
     }
 }

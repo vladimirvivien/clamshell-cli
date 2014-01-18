@@ -26,11 +26,18 @@ import org.clamshellcli.api.Shell;
  */
 public class MockShell implements Shell{
 
+    @Override
     public void exec(Context ctx) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    @Override
     public void plug(Context plug) {
+    }
+
+    @Override
+    public void unplug(Context plug) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }

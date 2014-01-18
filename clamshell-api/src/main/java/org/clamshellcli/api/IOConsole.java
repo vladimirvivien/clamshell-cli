@@ -109,7 +109,7 @@ public interface IOConsole extends Plugin{
     public File getHistoryFile();
     
     /**
-     * Clears the history.
+     * Clears the history.  
      */
     public void clearHistory();
     

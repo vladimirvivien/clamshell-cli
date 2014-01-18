@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 ClamShell-Cli.
+ * Copyright 2014 ClamShell-Cli.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.clamshellcli.api;
 
 /**
- * Interface for Plugin.  This is the root interface for all other runtime-loadable 
- * compoennts for clamshell.
- * @author vladimir vivien
+ * Generic high level exception container
+ * @author vladimir.vivien
  */
-public interface Plugin {
-    /**
-     * This is the entry point to all plugin components when they instantiated
-     * by the clam container.
-     * @param plug the global context for component.
-     */
-    public void plug(Context plug);
+public class CliException extends RuntimeException{
+    public CliException(){
+        super();
+    }
     
-    /**
-     * This is the exit point when components are done during lifecycle of the
-     * clamshell container.
-     * @param plug context
-     */
-    public void unplug(Context plug);
+    public CliException(String message){
+        super(message);
+    }
+    
+    public CliException(Throwable ex) {
+        super(ex);
+    }
+    
+    public CliException(String msg, Throwable ex){
+        super(msg, ex);
+    }
 }

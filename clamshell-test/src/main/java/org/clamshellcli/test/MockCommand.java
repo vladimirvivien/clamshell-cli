@@ -24,16 +24,24 @@ import org.clamshellcli.api.Context;
  */
 public class MockCommand implements Command{
 
+    @Override
     public Descriptor getDescriptor() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    @Override
     public Object execute(Context ctx) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    @Override
     public void plug(Context plug) {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void unplug(Context plug) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }

@@ -116,6 +116,5 @@ public class CliConsoleTest {
         Assert.assertTrue(c.getReader().getHistory().size() == 2);
         
         f.deleteOnExit();
-        
     }
 }

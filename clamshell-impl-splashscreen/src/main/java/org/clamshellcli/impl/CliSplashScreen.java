@@ -24,6 +24,7 @@ import org.clamshellcli.api.Context;
 import org.clamshellcli.api.SplashScreen;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import org.clamshellcli.api.IOConsole;
 
 /**
  * This is a SplashScreen plugin implementation to display a default ClamShell-Cli
@@ -31,12 +32,14 @@ import java.io.PrintStream;
  * @author vladimir.vivien
  */
 public class CliSplashScreen implements SplashScreen {
-    private static StringBuilder screen;
+    private StringBuilder screen;
+    @Override
     public void render(Context ctx) {
-        PrintStream out = new PrintStream ((OutputStream)ctx.getValue(Context.KEY_OUTPUT_STREAM));
-        out.println(screen);
+        IOConsole console = ctx.getIoConsole();
+        console.println(screen.toString());
     }
 
+    @Override
     public void plug(Context plug) {
         screen  = new StringBuilder();
         screen
@@ -59,6 +62,10 @@ public class CliSplashScreen implements SplashScreen {
 .append(Configurator.VALUE_LINE_SEP)
 .append(Configurator.VALUE_LINE_SEP)
  ;
+    }
+
+    @Override
+    public void unplug(Context plug) {
     }
     
 }

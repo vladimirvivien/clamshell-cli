@@ -20,7 +20,9 @@ import org.clamshellcli.api.IOConsole;
 import org.clamshellcli.api.Shell;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
+import org.clamshellcli.api.CliException;
 import org.clamshellcli.api.Configurator;
 import static org.clamshellcli.api.Context.*;
 import org.clamshellcli.api.InputController;
@@ -40,6 +42,7 @@ import org.clamshellcli.api.SplashScreen;
  * @author vladimir.vivien
  */
 public class CliShell implements Shell{
+    private AtomicBoolean loopRunning;
     private Context context;
     private IOConsole console;
     private Prompt prompt;
@@ -71,7 +74,14 @@ public class CliShell implements Shell{
     public void plug(Context plug) {
         context = plug;
         loadComponents(plug);
+        loopRunning = new AtomicBoolean(true);
         startConsoleThread();
+    }
+    
+    @Override
+    public void unplug(Context plug ){
+        loopRunning.set(false);
+        unloadComponent(plug);
     }
     
     /**
@@ -81,11 +91,6 @@ public class CliShell implements Shell{
      */
     private void loadComponents(Context plug) {
         context = plug;
-        // Load prompt component
-        List<Prompt> prompts = context.getPluginsByType(Prompt.class);
-        prompt = (prompts.size() > 0) ? prompts.get(0) : new DefaultPrompt();
-        prompt.plug(plug);
-        context.putValue(KEY_PROMPT_COMPONENT, prompt); // save for later use.     
         
         // Load IOConsole Component
         context.putValue(Context.KEY_INPUT_STREAM, System.in);
@@ -94,29 +99,112 @@ public class CliShell implements Shell{
         
         List<IOConsole> consoles = context.getPluginsByType(IOConsole.class);
         console = (consoles.size() > 0) ? consoles.get(0) : new CliConsole();
-        console.plug(plug);
-        context.putValue(KEY_CONSOLE_COMPONENT, console);
+        try{
+            console.plug(plug);
+            context.putValue(KEY_CONSOLE_COMPONENT, console);
+        }catch(Exception ex){
+            // attempt to fail fast if console is broken.
+            throw new CliException (ex);
+        }
         
+        // Load prompt component
+        List<Prompt> prompts = context.getPluginsByType(Prompt.class);
+        prompt = (prompts.size() > 0) ? prompts.get(0) : new DefaultPrompt();
+        try{
+            prompt.plug(plug);            
+        }catch(Exception ex){
+            console.printf ("WARNING: Unable to load specied prompt instance.%n"
+                    + "Will use a generic instance: %s%n ", ex.getMessage());
+            prompt = new Prompt () {
+                @Override
+                public String getValue(Context ctx) {
+                    return "cli>";
+                }
+
+                @Override
+                public void plug(Context plug) {
+                }
+
+                @Override
+                public void unplug(Context plug) {
+                }
+            };
+        }finally{
+            context.putValue(KEY_PROMPT_COMPONENT, prompt); // save for later use.
+        }
+                
         // activate/show splash screens
         List<SplashScreen> screens = context.getPluginsByType(SplashScreen.class);
         if(screens != null && screens.size() > 0){
             context.putValue(KEY_SPLASH_SCREENS, screens);
+            
             for(SplashScreen sc : screens){
-                sc.plug(plug);
-                sc.render(plug);
+                try{
+                    sc.plug(plug);
+                    sc.render(plug);
+                }catch (Exception ex){
+                    console.printf("WARNING: unable to load/render SplashScreen instance %s%n%s%n", 
+                            sc.getClass(), ex.getMessage());
+                }
             }
         }
 
         // activate controllers
         controllers = context.getPluginsByType(InputController.class);
         if(controllers.size() > 0){
-            context.putValue(KEY_CONTROLLERS, plug);
+            context.putValue(KEY_CONTROLLERS, controllers);
             for (InputController ctrl : controllers){
-                configureController(ctrl);
-                ctrl.plug(plug);
+                try{
+                    configureController(ctrl);
+                    ctrl.plug(plug);
+                }catch (Exception ex){
+                    console.printf("WARNING: unable to load/configure controller"
+                            + " %s [it will be disabled]%n%s%n", 
+                            ctrl.getClass(), ex.getMessage());
+                    ctrl.setEnabled(false);
+                }
             }
         }else{
             console.println("WARNING: No InputControllers found on classpath.");            
+        }
+    }
+    
+    private void unloadComponent(Context ctx){
+        // unplug controllers
+        for (InputController ctrl : ctx.getControllers()) {
+            try {
+                ctrl.unplug(ctx);
+            } catch (Exception ex) {
+                console.printf("WARNING: unable to unplug controller"
+                        + " %s:%n%s%n",
+                        ctrl.getClass(), ex.getMessage());
+            }
+        }
+        
+        
+        // unplug splash screens
+        for (SplashScreen screen : ctx.getSplashScreens()){
+            try{
+                screen.unplug(ctx);
+            }catch(Exception ex){
+                    console.printf("WARNING: unable to unplug SplashScreen instance %s%n%s%n", 
+                            screen.getClass(), ex.getMessage());                
+            }
+        }
+        
+        // unplug the prompt
+        try{
+            ctx.getPrompt().unplug(ctx);
+        }catch(Exception ex){
+            console.printf("WARNING: unable to unplug Prompt instance %s%n%s%n", 
+              ctx.getPrompt().getClass(), ex.getMessage());
+        }
+        
+        // unplug the console
+        try{
+            ctx.getIoConsole().unplug(ctx);
+        }catch(Exception ex){
+            System.out.println ("WARNING: unable to properly unplug the Console instance.");
         }
     }
     
@@ -124,7 +212,7 @@ public class CliShell implements Shell{
         new Thread(new Runnable() {
             @Override
             public void run() {
-                while (!Thread.interrupted()) {
+                while (loopRunning.get()) {
                     // reset command line arguments from previous command
                     context.putValue(Context.KEY_COMMAND_LINE_ARGS, null);
 
@@ -141,8 +229,12 @@ public class CliShell implements Shell{
                             Boolean enabled = controller.isEnabled();
                             // let controller handle input line if enabled
                             if(enabled){
-                                boolean ctrlResult = controller.handle(context);
-                                handled = handled || ctrlResult;
+                                try{
+                                    boolean ctrlResult = controller.handle(context);
+                                    handled = handled || ctrlResult;
+                                }catch(Exception ex){
+                                    console.printf("Unable to complete command:%n%s%n", ex.getMessage());
+                                }
                             }
                         }
                         // was command line handled.
