@@ -1,3 +1,5 @@
+[![Build Status](https://drone.io/github.com/vladimirvivien/clamshell-cli/status.png)](https://drone.io/github.com/vladimirvivien/clamshell-cli/latest)
+
 # Clamshell-Cli
 Clamshell-Cli is a framework for building console-based command-line applications in Java.  Clamshell uses a simple plugin architecture (based on the [http://download.oracle.com/javase/6/docs/api/java/util/ServiceLoader.html ServiceLoader API]) that let developers deploy components to build components with control over all aspects of console-based applications including splashscreen display, IO, prompt, input control, and command delegation.  Clamshell-Cli comes with a default runtime that implements all of the basic components needed for a fully functioning console-based app.  To customize the runtime with your own command, you simply create and deploy your own plugin jars (see example below).
 
