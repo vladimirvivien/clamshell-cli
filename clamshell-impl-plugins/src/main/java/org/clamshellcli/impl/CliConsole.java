@@ -118,8 +118,12 @@ public class CliConsole implements IOConsole{
         try {
             plugged = false;
             history.flush();
+            getWriter().flush();
+            getWriter().close();
+            console.flush();
+            console.getInput().close();
             console.shutdown();
-        } catch (Exception ex) {
+        } catch (IOException ex) {
             throw new RuntimeException ("Unable to unplug CliConsole.", ex);
         }
     }

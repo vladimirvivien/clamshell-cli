@@ -84,6 +84,7 @@ public class CliConsoleTest {
     @Test
     public void testAddToHistory() throws Exception{
         History h = c.getReader().getHistory();
+        c.clearHistory();
         c.addToHistory("Test");
         Assert.assertEquals("Test", h.get(0));
     }

@@ -47,6 +47,7 @@ public class CliShell implements Shell{
     private IOConsole console;
     private Prompt prompt;
     private List<InputController> controllers;
+    private Thread consoleThread;
 
     /** 
      * This method will be called when the shell is invoked to handle commands
@@ -80,8 +81,15 @@ public class CliShell implements Shell{
     
     @Override
     public void unplug(Context plug ){
-        loopRunning.set(false);
         unloadComponent(plug);
+        loopRunning.set(false);
+        consoleThread.interrupt();
+        try{
+            plug.getIoConsole().unplug(plug);
+        }catch(Exception ex){
+            System.out.println ("WARNING: unable to properly unplug the Console instance.");
+        }
+
     }
     
     /**
@@ -198,21 +206,17 @@ public class CliShell implements Shell{
         }catch(Exception ex){
             console.printf("WARNING: unable to unplug Prompt instance %s%n%s%n", 
               ctx.getPrompt().getClass(), ex.getMessage());
-        }
-        
-        // unplug the console
-        try{
-            ctx.getIoConsole().unplug(ctx);
-        }catch(Exception ex){
-            System.out.println ("WARNING: unable to properly unplug the Console instance.");
-        }
+        }        
     }
     
     private void startConsoleThread() {
-        new Thread(new Runnable() {
+        consoleThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 while (loopRunning.get()) {
+                    if (Thread.interrupted()) {
+                        return;
+                    }
                     // reset command line arguments from previous command
                     context.putValue(Context.KEY_COMMAND_LINE_ARGS, null);
 
@@ -249,7 +253,8 @@ public class CliShell implements Shell{
                     }
                 }
             }
-        }).start();
+        });
+        consoleThread.start();
     }
 
     /**
