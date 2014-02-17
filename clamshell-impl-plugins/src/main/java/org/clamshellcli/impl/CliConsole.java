@@ -33,6 +33,7 @@ import java.util.logging.Logger;
 import jline.Terminal;
 import jline.TerminalFactory;
 import jline.console.ConsoleReader;
+import jline.console.completer.FileNameCompleter;
 import jline.console.history.FileHistory;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.AnsiConsole;
@@ -104,9 +105,12 @@ public class CliConsole implements IOConsole{
             console.setHistoryEnabled(true);
             console.setHistory(history);
             
-            
             // console plugged
             plugged = true;
+            
+            // add FileCompletor
+            console.addCompleter(new FileNameCompleter());
+            
         } catch (IOException ex) {
             throw new RuntimeException("Unable to initialize the console. "
                     + " Clamshell-Cli will stop now.", ex);
