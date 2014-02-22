@@ -19,6 +19,8 @@ package org.clamshellcli.impl.test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import jline.console.completer.Completer;
+import jline.console.completer.StringsCompleter;
 import org.clamshellcli.api.Command;
 import org.clamshellcli.impl.CmdUtil;
 import org.clamshellcli.test.MockCommand;
@@ -34,14 +36,27 @@ public class CmdUtilTest {
     public CmdUtilTest() {}
     
     @Test
-    public void testExtractCommandInfo() {
+    public void testExtractCommandHints() {
         List<Command> cmds = new ArrayList<Command>();
         cmds.add(new MockCommand());
-        Map<String, String[]> info = CmdUtil.extractCommandInfo(cmds);
+        Map<String, List<String>> hints = CmdUtil.extractCommandHints(cmds);
         
-        Assert.assertNotNull("Expected command extraction null", info);
-        Assert.assertTrue(info.keySet().contains("mock"));
-        Assert.assertTrue(info.get("mock").length == 7);
+        Assert.assertNotNull("Expected command extraction null", hints);
+        Assert.assertTrue(hints.keySet().contains("mock"));
+        Assert.assertTrue(hints.get("mock").size() == 7);
+    }
+    
+    public void testGetHintsAsCompleters() {
+        List<Command> cmds = new ArrayList<Command>();
+        cmds.add(new MockCommand());
+        Map<String, List<String>> hints = CmdUtil.extractCommandHints(cmds);
+        List<Completer> completers = CmdUtil.getHintsAsCompleters(hints);
+        
+        Assert.assertNotNull(completers);
+        Assert.assertTrue(completers.size() == 1);
+        
+        StringsCompleter strComp = (StringsCompleter) completers.get(0);
+        Assert.assertTrue(strComp.getStrings().size() == 8); // cmd + args
     }
     
 }

@@ -23,9 +23,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.regex.Pattern;
+import jline.console.ConsoleReader;
+import jline.console.completer.ArgumentCompleter;
+import jline.console.completer.Completer;
+import jline.console.completer.NullCompleter;
 import org.clamshellcli.api.Configurator;
 import org.clamshellcli.api.IOConsole;
 import org.clamshellcli.core.Clamshell;
@@ -120,18 +122,15 @@ public class CmdController extends AnInputController{
      */
     @Override
     public void plug(Context plug) {
-        List<Command> allCmds = loadCommands(plug);
-        plug.putValue(Context.KEY_COMMANDS, allCmds);
-
+        List<Command> allCmds = loadCommands(plug);        
         if(allCmds.size() > 0){
+            plug.putValue(Context.KEY_COMMANDS, allCmds);
             commands = plug.mapCommands(allCmds);
-            Set<String> cmdHints = new TreeSet<String>();
-            // plug each Command instance and collect input hints
-            for(Command cmd : allCmds){
-                cmd.plug(plug);
-                cmdHints.addAll(collectInputHints(cmd));
-            }
-            
+            Map<String, List<String>> hints = CmdUtil.extractCommandHints(allCmds);
+            ConsoleReader console = ((CliConsole)plug.getIoConsole()).getReader();
+            List<Completer> completers = CmdUtil.getHintsAsCompleters(hints);
+            completers.add(NullCompleter.INSTANCE);
+            console.addCompleter(new ArgumentCompleter(completers));
         }else{
             plug.getIoConsole().printf(
                 "%nNo commands were found for input controller [%s].%n", 
@@ -139,7 +138,7 @@ public class CmdController extends AnInputController{
             );
         }
     }
-    
+        
     @Override
     public void unplug(Context plug){
         List<Command> cmds = plug.getCommands();

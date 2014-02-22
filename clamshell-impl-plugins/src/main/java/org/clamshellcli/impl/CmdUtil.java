@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import jline.console.completer.Completer;
+import jline.console.completer.StringsCompleter;
 import org.clamshellcli.api.Command;
 
 /**
@@ -28,24 +30,23 @@ import org.clamshellcli.api.Command;
  */
 public class CmdUtil{
     /**
-     * Returns a 2d array of [cmd-name][cmd args]
+     * Returns a map of [cmd-name][cmd args[]]
      * @param commands
      * @return 
      */
-    public static Map<String,String[]> extractCommandInfo (List<Command> commands) {
-        Map<String, String[]> result = new TreeMap<String,String[]>();
+    public static Map<String,List<String>> extractCommandHints (List<Command> commands) {
+        Map<String, List<String>> result = new TreeMap<String,List<String>>();
         
         for (Command cmd : commands) {
             if (cmd.getDescriptor() != null){
                 String cmdStr = cmd.getDescriptor().getName();
-                String[] args = extractArgs(cmd);
-                result.put(cmdStr, args);
+                result.put(cmdStr, extractArgs(cmd));
             }
         }
         return result;
     }
     
-    private static String[] extractArgs(Command cmd) {
+    private static List<String> extractArgs(Command cmd) {
         if (cmd.getDescriptor() == null || cmd.getDescriptor().getArguments() == null) {
             return null;
         }
@@ -54,6 +55,16 @@ public class CmdUtil{
             args.add(e.getKey());
         }
         
-        return args.toArray(new String[args.size()]);
+        return args;
+    }
+    
+    public static List<Completer> getHintsAsCompleters(Map<String,List<String>> hints) {
+        List<Completer> completors = new ArrayList<Completer>(hints.size());
+        for (Map.Entry<String, List<String>> hint : hints.entrySet()){
+            List<String> argList = hint.getValue();
+            argList.add(0, hint.getKey());
+            completors.add(new StringsCompleter(argList));
+        }
+        return completors;
     }
 }
