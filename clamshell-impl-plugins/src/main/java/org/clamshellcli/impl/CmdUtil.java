@@ -26,7 +26,7 @@ import org.clamshellcli.api.Command;
 
 /**
  *
- * @author vladimir
+ * @author vladimir.vivien
  */
 public class CmdUtil{
     /**
@@ -58,6 +58,11 @@ public class CmdUtil{
         return args;
     }
     
+    /**
+     * Builds a list of jLine completers using the hints map from {@link extractCommandHints}
+     * @param hints
+     * @return 
+     */
     public static List<Completer> getHintsAsCompleters(Map<String,List<String>> hints) {
         List<Completer> completors = new ArrayList<Completer>(hints.size());
         for (Map.Entry<String, List<String>> hint : hints.entrySet()){

@@ -108,9 +108,6 @@ public class CliConsole implements IOConsole{
             // console plugged
             plugged = true;
             
-            // add FileCompletor
-            console.addCompleter(new FileNameCompleter());
-            
         } catch (IOException ex) {
             throw new RuntimeException("Unable to initialize the console. "
                     + " Clamshell-Cli will stop now.", ex);

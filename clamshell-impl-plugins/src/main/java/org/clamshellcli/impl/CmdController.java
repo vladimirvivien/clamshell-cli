@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import jline.console.ConsoleReader;
+import jline.console.completer.AggregateCompleter;
 import jline.console.completer.ArgumentCompleter;
 import jline.console.completer.Completer;
 import jline.console.completer.NullCompleter;
@@ -126,11 +127,10 @@ public class CmdController extends AnInputController{
         if(allCmds.size() > 0){
             plug.putValue(Context.KEY_COMMANDS, allCmds);
             commands = plug.mapCommands(allCmds);
-            Map<String, List<String>> hints = CmdUtil.extractCommandHints(allCmds);
+            CmdCompleter completer = new CmdCompleter(allCmds);
             ConsoleReader console = ((CliConsole)plug.getIoConsole()).getReader();
-            List<Completer> completers = CmdUtil.getHintsAsCompleters(hints);
-            completers.add(NullCompleter.INSTANCE);
-            console.addCompleter(new ArgumentCompleter(completers));
+            console.addCompleter(completer);
+            console.addCompleter(NullCompleter.INSTANCE);
         }else{
             plug.getIoConsole().printf(
                 "%nNo commands were found for input controller [%s].%n", 
