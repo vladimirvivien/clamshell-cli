@@ -49,7 +49,7 @@ public class CmdCompleter implements Completer{
                 // exact match: display arcuments, exit.
                 if (e.getKey().equals(input)){
                     result.addAll(e.getValue());
-                    return input.length() + 1;
+                    break;
                 }
                 
                 // display all partial match
@@ -58,7 +58,7 @@ public class CmdCompleter implements Completer{
                 }
             }
         }
-
-        return result.isEmpty() ? 0 : -1;
+        
+        return result.isEmpty() ? -1 : cmd.length() + 1;
     }
 }
