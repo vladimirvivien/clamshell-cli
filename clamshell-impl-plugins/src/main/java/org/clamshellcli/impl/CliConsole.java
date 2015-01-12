@@ -67,7 +67,7 @@ public class CliConsole implements IOConsole{
     private FileHistory history;
     
     static {
-        TERM = TerminalFactory.create();
+        TERM = TerminalFactory.get();
         AnsiConsole.systemInstall();
         Ansi.setEnabled(true);
         
