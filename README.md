@@ -28,7 +28,7 @@ Clamshell-Cli is a framework for building console-based command-line application
 ## Getting Started
 It's easy to get started with Clamshell-Cli to build your first console application.
   * First, download the packaged zipped binary distribution from this site.  This is a default runtime implementation that you can use for your own CLI tools.
-  * Unzip at a locatin of your choice.  The zip file will create a directory named `clamshellcli-{version}` (will refer to it as {CLI_HOME}).
+  * Unzip at a location of your choice.  The zip file will create a directory named `clamshellcli-{version}` (will refer to it as {CLI_HOME}).
   * Change directory inside {CLI_HOME} and inspect the files.  You will see the followings:
 ```
 -rw-r--r--@ 1 299   Mar  17 cli.config
